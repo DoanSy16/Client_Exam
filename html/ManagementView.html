@@ -1,0 +1,467 @@
+<style>
+  * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
+
+  .pdf body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: linear-gradient(135deg, #f5f7fa 0%, #e4e8ec 100%);
+    padding: 2rem;
+    line-height: 1.6;
+  }
+
+  .pdf .container {
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+
+  .pdf .export-button {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    margin-bottom: 1.5rem;
+  }
+
+  .pdf .btn-export {
+    background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+    color: white;
+    border: none;
+    padding: 0.875rem 1.75rem;
+    font-size: 1rem;
+    font-weight: 600;
+    border-radius: 0.75rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    box-shadow: 0 10px 25px rgba(59, 130, 246, 0.3);
+    transition: all 0.3s ease;
+  }
+
+  .pdf .btn-export:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 15px 35px rgba(59, 130, 246, 0.4);
+    background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+  }
+
+  .pdf .btn-export:active {
+    transform: translateY(0);
+  }
+
+  .pdf .btn-export svg {
+    width: 20px;
+    height: 20px;
+  }
+
+  #examPdf {
+    background: white;
+    border-radius: 1.5rem;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+    overflow: hidden;
+  }
+
+  .pdf .exam-header {
+    background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+    color: white;
+    padding: 2.5rem 2rem;
+    text-align: center;
+    position: relative;
+  }
+
+  .pdf .exam-header::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 100px;
+    height: 4px;
+    background: rgba(255, 255, 255, 0.3);
+    border-radius: 2px;
+  }
+
+  .pdf .exam-header h1 {
+    font-size: 2rem;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 1rem;
+  }
+
+  .pdf .icon-book {
+    width: 32px;
+    height: 32px;
+  }
+
+  .pdf .exam-info {
+    padding: 2rem;
+    background: linear-gradient(to bottom, #f8fafc 0%, white 100%);
+    border-bottom: 1px solid #e2e8f0;
+  }
+
+  .pdf .info-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2rem;
+  }
+
+  .pdf .info-item {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 1rem;
+  }
+
+  .pdf .info-label {
+    font-weight: 600;
+    color: #64748b;
+    min-width: 110px;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .pdf .info-value {
+    color: #0f172a;
+    font-weight: 600;
+    flex: 1;
+  }
+
+  .pdf .info-value.mssv {
+    font-family: 'Courier New', monospace;
+  }
+
+  .pdf .score-badge {
+    display: inline-block;
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    color: white;
+    padding: 0.5rem 1.25rem;
+    border-radius: 2rem;
+    font-weight: 700;
+    font-size: 1.125rem;
+    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+  }
+
+  .pdf .icon {
+    width: 16px;
+    height: 16px;
+    vertical-align: middle;
+  }
+
+  .pdf .questions-container {
+    padding: 2rem;
+  }
+
+  .pdf .question-card {
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 1rem;
+    padding: 1.5rem;
+    margin-bottom: 2rem;
+    transition: all 0.3s ease;
+  }
+
+  .pdf .question-card:hover {
+    border-color: #3b82f6;
+    box-shadow: 0 4px 20px rgba(59, 130, 246, 0.1);
+  }
+
+  .pdf .question-header {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .pdf .question-number {
+    flex-shrink: 0;
+    width: 2.5rem;
+    height: 2.5rem;
+    background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+    color: white;
+    border-radius: 0.75rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 1.125rem;
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+  }
+
+  .pdf .question-content {
+    display: flex;
+    gap: 1.5rem;
+    flex: 1;
+  }
+
+  .pdf .question-left {
+    flex: 1;
+  }
+
+  .pdf .question-text {
+    color: #0f172a;
+    font-weight: 600;
+    font-size: 1.125rem;
+    line-height: 1.6;
+    margin-bottom: 1.25rem;
+  }
+
+  .pdf .answers-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .pdf .answer-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.75rem;
+    padding: 0.875rem;
+    background: white;
+    border: 1px solid #e2e8f0;
+    border-radius: 0.75rem;
+    transition: all 0.2s ease;
+  }
+
+  .pdf .answer-item.correct {
+    background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%);
+    border: 2px solid #10b981;
+    box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.1);
+  }
+
+  .pdf .answer-option {
+    flex-shrink: 0;
+    width: 1.75rem;
+    height: 1.75rem;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 0.875rem;
+    background: #f1f5f9;
+    color: #475569;
+  }
+
+  .pdf .answer-item.correct .answer-option {
+    background: #10b981;
+    color: white;
+    box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.2);
+  }
+
+  .pdf .answer-text {
+    flex: 1;
+    color: #475569;
+    padding-top: 0.125rem;
+  }
+
+  .pdf .answer-item.correct .answer-text {
+    color: #065f46;
+    font-weight: 600;
+  }
+
+  .pdf .question-images {
+    flex-shrink: 0;
+    width: 280px;
+  }
+
+  .pdf .images-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.5rem;
+  }
+
+  .pdf .image-placeholder {
+    aspect-ratio: 1;
+    background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+    border: 2px dashed #cbd5e1;
+    border-radius: 0.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #94a3b8;
+    font-size: 0.75rem;
+    font-weight: 600;
+    transition: all 0.2s ease;
+    overflow: hidden;
+  }
+
+  .pdf .image-placeholder:hover {
+    border-color: #3b82f6;
+    background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
+    color: #3b82f6;
+  }
+
+  .pdf .image-placeholder img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 0.375rem;
+  }
+
+  .pdf .additional-images {
+    margin-top: 2rem;
+    padding: 3rem 2rem;
+    border-top: 1px solid #e2e8f0;
+  }
+
+  .pdf .additional-images-box {
+    border: 2px dashed #cbd5e1;
+    border-radius: 1rem;
+    padding: 3rem;
+    text-align: center;
+    background: #f8fafc;
+    transition: all 0.3s ease;
+  }
+
+  .pdf .additional-images-box:hover {
+    border-color: #3b82f6;
+    background: #eff6ff;
+  }
+
+  .pdf .additional-images-text {
+    color: #94a3b8;
+    font-size: 1.125rem;
+    font-weight: 600;
+  }
+
+  @media print {
+    .pdf body {
+      background: white;
+      padding: 0;
+    }
+
+    .pdf .export-button {
+      display: none;
+    }
+
+    .pdf #examPdf {
+      box-shadow: none;
+      border-radius: 0;
+    }
+
+    .pdf .question-card {
+      page-break-inside: avoid;
+    }
+  }
+
+  @media (max-width: 768px) {
+    .pdf body {
+      padding: 1rem;
+    }
+
+    .pdf .info-grid {
+      grid-template-columns: 1fr;
+      gap: 1rem;
+    }
+
+    .pdf .question-content {
+      flex-direction: column;
+    }
+
+    .pdf .question-images {
+      width: 100%;
+    }
+
+    .pdf .exam-header h1 {
+      font-size: 1.5rem;
+    }
+  }
+</style>
+
+
+<div class="container pdf">
+  <div class="export-button">
+    <button class="btn-export" ng-click="exportPDF()">
+      Xuất PDF
+    </button>
+  </div>
+
+  <div id="examPdf">
+    <div class="exam-header">
+      <h1>
+        {{exam.discipline_name}}
+      </h1>
+    </div>
+
+    <div class="exam-info">
+      <div class="info-grid">
+        <div>
+          <div class="info-item">
+            <div class="info-label">Lớp:</div>
+            <div class="info-value">{{exam.classNameSelected}}</div>
+          </div>
+
+          <div class="info-item">
+            <div class="info-label">Họ tên:</div>
+            <div class="info-value">{{exam.nameSelected}}</div>
+          </div>
+
+          <div class="info-item">
+            <div class="info-label">MSSV:</div>
+            <div class="info-value mssv">{{exam.isSelected}}</div>
+          </div>
+        </div>
+
+        <div>
+          <div class="info-item">
+            <div class="info-label">Số câu:</div>
+            <div class="info-value">{{exam.countQuestions}}/{{exam.countQuestions}}</div>
+          </div>
+
+          <div class="info-item">
+            <div class="info-label">Thời gian:</div>
+            <div class="info-value">{{exam.time}}p - {{exam.submissionTime | date:'dd/MM/yyyy'}}</div>
+          </div>
+
+          <div class="info-item">
+            <div class="info-label">Điểm:</div>
+            <div class="info-value">
+              <span class="score-badge">{{exam.mark}}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="questions-container">
+      <div class="question-card" ng-repeat="q in exam.questions">
+        <div class="question-header">
+          <div class="question-number">{{$index + 1}}</div>
+          <div class="question-content">
+            <div class="question-left">
+              <div class="question-text">{{q.text_question}}</div>
+              <div class="answers-list">
+                <div class="answer-item" ng-repeat="ans in q.Answers_Text" ng-init="index"
+                  ng-class="{'correct': ans.answer_option_id == q.correct_answer[0].correct_answer}">
+                  <div class="answer-option">{{getOptionLetter($index)}}</div>
+                  <div class="answer-text">{{ans.text_answer}}</div>
+                </div>
+              </div>
+            </div>
+
+            <div class="question-images" ng-if="q.source_image && q.source_image.length > 0">
+              <div class="images-grid">
+                <div class="image-placeholder" ng-repeat="img in q.source_image">
+                  <img ng-if="img.source_image" ng-src="{{img.source_image}}" alt="Hình {{$index + 1}}">
+                  <span ng-if="!img.source_image">{{img.content}}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- <div class="additional-images">
+      <div class="additional-images-box">
+        <div class="additional-images-text">
+          Ảnh đính kèm bổ sung (Nếu có, tối đa 6 hình)
+        </div>
+      </div>
+    </div> -->
+  </div>
+</div>

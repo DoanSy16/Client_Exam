@@ -1,0 +1,212 @@
+<!-- Quiz View -->
+<div class="view" id="quiz-view">
+    <div class="quiz-container">
+        <div class="quiz-header">
+            <div class="quiz-info">
+                <h2>Tạo/Chỉnh sửa câu hỏi</h2>
+            </div>
+            <div class="quiz-controls">
+                <button class="btn btn-primary" ng-click="addQuestion(true)">Thêm câu hỏi</button>
+                <button ng-class="{'btn-save': fill_data_exam.question_id != null ,'btn-outline':''}"
+                    ng-disabled="!fill_data_exam.question_id" class="btn btn-secondary"
+                    ng-click="addQuestion(false)">Lưu</button>
+                <button class="btn " ng-click="clearForm()">Làm mới</button>
+            </div>
+        </div>
+
+        <div class="quiz-content">
+            <div class="question-section">
+                <div class="form-group">
+                    <label>Nội dung câu hỏi</label>
+                    <textarea id="question-content" class="question-textarea" ng-model="fill_data_exam.text_question"
+                        placeholder="Nhập nội dung câu hỏi..."></textarea>
+                </div>
+
+                <!-- Image Upload Section -->
+                <div class="image-upload-section">
+                    <div class="form-group">
+                        <label>Hình ảnh minh họa (tối đa 6 ảnh)</label>
+                        <div class="image-upload-container">
+                            <input type="file" id="image-upload" file-model="myFiles" multiple accept="image/*"
+                                style="display: none;" multiple>
+                            <button class="btn btn-outline upload-btn" ng-click="triggerUpload()">
+                                <i class="fas fa-plus"></i>
+                                Thêm ảnh
+                            </button>
+                        </div>
+                    </div>
+                    <div class="image-preview-grid" id="image-preview-grid">
+                        <div ng-if="fill_data_exam.source_image.length>0"
+                            ng-repeat="img in fill_data_exam.source_image track by $index">
+                            <div class="image-preview-item">
+                                <img ng-src="{{img.source_image}}" alt="{{img.content}}">
+
+                                <button class="image-remove-btn" ng-click="removeImage(img.source_image)">
+                                    <i class="fas fa-times"></i>
+                                </button>
+                            </div>
+                            <input type="text" class="answer-input" ng-model="img.content"
+                                placeholder="Nhập mô tả cho ảnh" />
+                        </div>
+                        <div ng-if="fill_data_exam.source_image.length== 0" class="image-preview-empty">
+
+                            Chưa có hình ảnh nào
+                        </div>
+                    </div>
+                </div>
+
+                <div class="answers-list" id="answers-list">
+                    <label>Các đáp án</label>
+                    <!-- radio -->
+                    <div ng-if="fill_data_exam.type_question_id===1" class="answer-option"
+                        ng-repeat="ans in fill_data_exam.Answers_Text track by $index"
+                        ng-class="{'correct': ans.answer_option_id == fill_data_exam.correct_answer[0].correct_answer}">
+                        <span class="option-label"> {{answerArr(ans.answer_option_id)}}</span>
+                        <input type="text" ng-model="ans.text_answer" class="answer-input">
+                        <div class="button-group" style="display: flex;  gap: 8px">
+                            <button ng-hide="ans.answer_option_id== fill_data_exam.correct_answer[0].correct_answer"
+                                class="btn-check-answer" ng-click="confirmAnswer(ans.answer_option_id)">
+                                <i class="fas fa-check"></i>
+                            </button>
+                            <button class="btn-remove-answer" ng-click="removeAnswer($index)">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <!-- checkbox -->
+
+                    <div ng-if="fill_data_exam.type_question_id===2" class="answer-option"
+                        ng-repeat="ans in fill_data_exam.Answers_Text track by $index"
+                        ng-class="{'correct': selectedQuestions.indexOf(ans.answer_option_id) !== -1}">
+
+                        <span class="option-label"> {{answerArr(ans.answer_option_id)}}</span>
+                        <input type="text" ng-model="ans.text_answer" class="answer-input">
+                        <div class="button-group">
+                            <div class="question-checkbox">
+                                <input type="checkbox" id="q-{{ans.answer_option_id}}"
+                                    ng-checked="selectedQuestions.indexOf(ans.answer_option_id) !== -1"
+                                    ng-click="toggleQuestionSelection(ans.answer_option_id)">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Text input for essay questions -->
+                    <div ng-if="fill_data_exam.type_question_id===3">
+                        <!-- <textarea class="text-input" ng-model="answers[currentQuestion]"
+                            ng-change="updateAnsweredCount()" placeholder="Nhập câu trả lời của bạn..."
+                            ng-disabled="!examData.statusExam"></textarea> -->
+                        <textarea class="question-textarea" ng-model="fill_data_exam.Answers_Text[0].text_answer"
+                            placeholder="Nhập nội dung câu trả lời..."></textarea>
+                    </div>
+
+
+                </div>
+
+                <button class="btn btn-outline add-answer-btn" ng-click="addAnswer()">
+                    <i class="fas fa-plus"></i>
+                    Thêm đáp án
+                </button>
+            </div>
+
+            <div class="quiz-sidebar">
+                <div class="quiz-settings">
+                    <div class="form-group">
+                        <label>Chọn môn học:</label>
+                        <select class="select-input" id="quiz-subject-select" ng-model="selectedDiscipline"
+                            ng-change="logDiscipline(selectedDiscipline)"
+                            ng-options="d.discipline_id as d.name_discipline for d in h_Disciplines">
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Độ khó</label>
+                        <select class="select-input" id="quiz-difficulty-select" ng-model="fill_data_exam.level_id"
+                            ng-change="logLevel(fill_data_exam.level_id)"
+                            ng-options="l.level_id as l.name_level for l in h_level_questions">
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Loại câu hỏi</label>
+                        <select class="select-input" ng-model="fill_data_exam.type_question_id"
+                            ng-change="logTypeQuestion(f.ill_data_examtype_question_id)"
+                            ng-options="t.type_question_id as t.type_question_name for t in h_type_question">
+                        </select>
+                    </div>
+
+                    <div class="import-export">
+
+                        <input type="file" id="excelFile" accept=".xlsx,.xls"
+                            onchange="angular.element(this).scope().onExcelSelected(this.files)" style="display:none" />
+
+                        <button class="btn btn-outline" ng-click="triggerExcelInput()">
+                            Import Excel
+                        </button>
+
+                        <button class="btn btn-outline" onclick="exportExcel()">Export Excel</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="quiz-footer">
+            <!-- <div class="subject-selector">
+                <label>Chọn môn học:</label>
+                <select class="select-input" id="quiz-subject-select" ng-model="selectedDiscipline"
+                    ng-change="logDiscipline(selectedDiscipline)"
+                    ng-options="d.discipline_id as d.name_discipline for d in h_Disciplines">
+                </select>
+            </div> -->
+
+            <div class="search-questions">
+                <input type="text" placeholder="Tìm kiếm câu hỏi..." class="search-input" id="search-questions-input">
+            </div>
+        </div>
+
+        <div class="questions-bank">
+            <div class="table-container">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>STT</th>
+                            <th>Câu hỏi</th>
+                            <th>Cấp độ</th>
+                            <th>Người thêm</th>
+                            <th>Thao tác</th>
+                        </tr>
+                    </thead>
+                    <tbody id="questions-bank-table">
+                        <tr ng-repeat="d in data_exam_quiz track by d.question_id">
+                            <td>{{$index + 1}}</td>
+                            <td>
+                                {{d.text_question}}
+                                <span class="image-indicator" ng-if="d.count_image > 0">
+                                    <i class="fas fa-image"></i> {{d.count_image}}
+                                </span>
+                            </td>
+                            <td>
+                                <span class="status-badge {{ getDifficultyClass(d.name_level) }}">
+                                    {{d.name_level}}
+                                </span>
+                            </td>
+                            <td>{{d.fullname}}</td>
+                            <td>
+                                <button class="btn btn-outline btn-sm" title="Chỉnh sửa"
+                                    ng-click="load_data_ctrl($index)">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                                <button ng-click="deleteQuestions(d.question_id,d.text_question)"
+                                    class="btn btn-danger btn-sm" title="Xóa">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </td>
+                        </tr>
+                        <tr ng-if="!data_exam_quiz">
+                            <td colspan="5" class="text-center">Không có dữ liệu</td>
+                        </tr>
+                    </tbody>
+
+
+                </table>
+            </div>
+        </div>
+    </div>
+</div>

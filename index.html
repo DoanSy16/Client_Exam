@@ -1,0 +1,282 @@
+<!doctype html>
+<html lang="vi" ng-app="myApp">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Trắc nghiệm Online</title>
+  <link rel="icon" href="images/stu.png" type="image/x-icon">
+ 
+
+  <!-- <script src="lb/jquery.min.js"></script>
+    <script src="lb/angular.min.js"></script> -->
+
+  <script src="lb/jquery.min.js"></script>
+  <!-- <link rel="stylesheet" href="css/bootstrap.min.css"> -->
+  <script src="lb/bootstrap.min.js"></script>
+   <link rel="stylesheet" href="/css/stylelogin.css">
+  <!-- <link rel="stylesheet" href="css/mdb.min.css"> -->
+  <script src="lb/angular.min.js"></script>
+  <link rel="stylesheet" href="css/sweetalert2.min.css">
+  <!-- Gọi trình cắm SWAL (SWeet ALert ) -->
+  <script src="lb/sweetalert2.min.js"></script>
+  <!-- Gọi trình cắm SWAL (SWeet ALert ) -->
+  <script src="lb/angular-route.js"></script>
+  <!-- Animetion hiệu ứng chuyển động các slide -->
+  <script src="lb/angular-animate.js"></script>
+  <script src="lb/socket.io.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jsencrypt/3.0.0-beta.1/jsencrypt.min.js"></script>
+
+
+
+  <!-- Kết nối trước để tối ưu tốc độ tải -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+  <!-- Preload Google Fonts -->
+  <link rel="preload" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" as="style"
+    onload="this.onload=null;this.rel='stylesheet'">
+
+  <!-- Fallback khi preload không chạy -->
+  <noscript>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
+  </noscript>
+
+  <!-- Font Awesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/angular-ui-select/0.20.0/select.min.css" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/angular-ui-select/0.20.0/select.min.js"></script>
+  <!--pdf-->
+
+  <!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script> -->
+  <!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script> -->
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+  <!-- <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script> -->
+  <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
+
+
+
+</head>
+
+
+<body ng-controller="LoginCtrl">
+  <div class="container">
+    <div class="form-wrapper">
+      <!-- Header -->
+      <div class="header">
+        <div class="logo">STU</div>
+        <h1 class="title">HỆ THỐNG THI TRẮC NGHIỆM</h1>
+        <p class="subtitle">TRƯỜNG ĐẠI HỌC CÔNG NGHỆ SÀI GÒN</p>
+      </div>
+
+      <!-- Tab Navigation -->
+      <div class="tab-navigation">
+        <button class="tab-btn" ng-click="switchTab('login')" ng-class="{active: currentTab === 'login'}">ĐĂNG
+          NHẬP</button>
+        <button class="tab-btn" ng-click="switchTab('register')" ng-class="{active: currentTab === 'register'}">ĐĂNG
+          KÝ</button>
+        <button class="tab-btn" ng-click="switchTab('forgot')" ng-class="{active: currentTab === 'forgot'}">QUÊN MẬT
+          KHẨU</button>
+      </div>
+
+      <!-- Login Form -->
+      <div class="form-container" ng-show="currentTab === 'login'">
+        <div class="form-group">
+          <label class="form-label">USERNAME</label>
+          <div class="input-wrapper">
+            <span class="input-icon">👤</span>
+            <input type="text" class="form-input" ng-model="login.username" ng-class="{error: errors.login.username}"
+              placeholder="Nhập username của bạn" />
+            <span class="error-text" ng-show="errors.login.username">{{errors.login.username}}</span>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">MẬT KHẨU</label>
+          <div class="input-wrapper">
+            <span class="input-icon">🔒</span>
+            <input type="password" class="form-input" ng-model="login.password"
+              ng-class="{error: errors.login.password}" placeholder="Nhập mật khẩu" />
+            <span class="error-text" ng-show="errors.login.password">{{errors.login.password}}</span>
+          </div>
+        </div>
+
+        <button class="submit-btn" ng-click="submitLogin()" ng-class="{loading: isLoading}">ĐĂNG NHẬP →</button>
+
+        <div class="message-box" ng-show="message.text && message.type === 'error'" ng-class="message.type">
+          <p>{{message.text}}</p>
+        </div>
+        <div class="message-box" ng-show="message.text && message.type === 'success'" ng-class="message.type">
+          <p>{{message.text}}</p>
+        </div>
+        <div class="message-box info"
+          ng-show="!message.text || (message.type !== 'error' && message.type !== 'success')">
+          <p>Vui lòng nhập đầy đủ thông tin để đăng nhập vào hệ thống.</p>
+        </div>
+      </div>
+
+      <!-- Register Form -->
+      <div class="form-container" ng-show="currentTab === 'register'">
+        <div class="form-group">
+          <label class="form-label">USERNAME</label>
+          <div class="input-wrapper">
+            <span class="input-icon">👤</span>
+            <input type="text" class="form-input" ng-model="register.username"
+              ng-class="{error: errors.register.username}" placeholder="Nhập username" />
+            <span class="error-text" ng-show="errors.register.username">{{errors.register.username}}</span>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">EMAIL</label>
+          <div class="input-wrapper">
+            <span class="input-icon">📧</span>
+            <input type="email" class="form-input" ng-model="register.email" ng-class="{error: errors.register.email}"
+              placeholder="Nhập email của bạn" />
+            <span class="error-text" ng-show="errors.register.email">{{errors.register.email}}</span>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">MẬT KHẨU</label>
+          <div class="input-wrapper">
+            <span class="input-icon">🔒</span>
+            <input type="password" class="form-input" ng-model="register.password"
+              ng-class="{error: errors.register.password}" placeholder="Nhập mật khẩu" />
+            <span class="error-text" ng-show="errors.register.password">{{errors.register.password}}</span>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">XÁC NHẬN MẬT KHẨU</label>
+          <div class="input-wrapper">
+            <span class="input-icon">🔒</span>
+            <input type="password" class="form-input" ng-model="register.confirmPassword"
+              ng-class="{error: errors.register.confirmPassword}" placeholder="Nhập lại mật khẩu" />
+            <span class="error-text"
+              ng-show="errors.register.confirmPassword">{{errors.register.confirmPassword}}</span>
+          </div>
+        </div>
+
+        <button class="submit-btn" ng-click="submitRegister()" ng-class="{loading: isLoading}">ĐĂNG KÝ →</button>
+
+        <div class="message-box" ng-show="message.text && message.type === 'error'" ng-class="message.type">
+          <p>{{message.text}}</p>
+        </div>
+        <div class="message-box" ng-show="message.text && message.type === 'success'" ng-class="message.type">
+          <p>{{message.text}}</p>
+        </div>
+        <div class="message-box info"
+          ng-show="!message.text || (message.type !== 'error' && message.type !== 'success')">
+          <p>Vui lòng điền đầy đủ thông tin để tạo tài khoản mới.</p>
+        </div>
+      </div>
+
+      <!-- Forgot Password Form -->
+      <div class="form-container" ng-show="currentTab === 'forgot'">
+        <!-- Step 1: Enter Email -->
+        <div ng-show="forgotStep === 1">
+          <div class="form-group">
+            <label class="form-label">EMAIL</label>
+            <div class="input-wrapper">
+              <span class="input-icon">📧</span>
+              <input type="email" class="form-input" ng-model="forgot.email" ng-class="{error: errors.forgot.email}"
+                placeholder="Nhập email của bạn" />
+              <span class="error-text" ng-show="errors.forgot.email">{{errors.forgot.email}}</span>
+            </div>
+          </div>
+
+          <button class="submit-btn" ng-click="sendOTP()" ng-class="{loading: isLoading}">GỬI MÃ OTP →</button>
+
+          <div class="message-box" ng-show="message.text && message.type === 'error'" ng-class="message.type">
+            <p>{{message.text}}</p>
+          </div>
+          <div class="message-box info"
+            ng-show="!message.text || (message.type !== 'error' && message.type !== 'success')">
+            <p>Nhập email đã đăng ký để nhận mã OTP xác thực.</p>
+          </div>
+        </div>
+
+        <!-- Step 2: Enter OTP -->
+        <div ng-show="forgotStep === 2">
+          <div class="form-group">
+            <label class="form-label">MÃ OTP</label>
+            <div class="input-wrapper">
+              <span class="input-icon">🔑</span>
+              <input type="text" class="form-input" ng-model="forgot.otpCode" ng-class="{error: errors.forgot.otpCode}"
+                placeholder="Nhập mã OTP" maxlength="6" />
+              <span class="error-text" ng-show="errors.forgot.otpCode">{{errors.forgot.otpCode}}</span>
+            </div>
+            <div class="timer">Thời gian còn lại: <span>{{timerDisplay}}</span></div>
+          </div>
+
+          <button class="submit-btn" ng-click="verifyOTP()" ng-class="{loading: isLoading}">XÁC THỰC OTP →</button>
+          <button class="secondary-btn" ng-click="resendOTP()" ng-disabled="isResendDisabled"
+            ng-class="{loading: isLoading}">Gửi lại mã OTP</button>
+
+          <div class="message-box" ng-show="message.text && message.type === 'error'" ng-class="message.type">
+            <p>{{message.text}}</p>
+          </div>
+          <div class="message-box info"
+            ng-show="!message.text || (message.type !== 'error' && message.type !== 'success')">
+            <p>Mã OTP đã được gửi đến email của bạn. Vui lòng kiểm tra hộp thư.</p>
+          </div>
+        </div>
+
+        <!-- Step 3: Create New Password -->
+        <div ng-show="forgotStep === 3">
+          <div class="form-group">
+            <label class="form-label">MẬT KHẨU MỚI</label>
+            <div class="input-wrapper">
+              <span class="input-icon">🔒</span>
+              <input type="password" class="form-input" ng-model="forgot.newPassword"
+                ng-class="{error: errors.forgot.newPassword}" placeholder="Nhập mật khẩu mới" />
+              <span class="error-text" ng-show="errors.forgot.newPassword">{{errors.forgot.newPassword}}</span>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">XÁC NHẬN MẬT KHẨU MỚI</label>
+            <div class="input-wrapper">
+              <span class="input-icon">🔒</span>
+              <input type="password" class="form-input" ng-model="forgot.confirmNewPassword"
+                ng-class="{error: errors.forgot.confirmNewPassword}" placeholder="Nhập lại mật khẩu mới" />
+              <span class="error-text"
+                ng-show="errors.forgot.confirmNewPassword">{{errors.forgot.confirmNewPassword}}</span>
+            </div>
+          </div>
+
+          <button class="submit-btn" ng-click="resetPassword()" ng-class="{loading: isLoading}">ĐẶT LẠI MẬT KHẨU
+            →</button>
+
+          <div class="message-box success">
+            <p>Mã OTP hợp lệ! Vui lòng tạo mật khẩu mới cho tài khoản của bạn.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script type="text/javascript" src="lb/mdb.min.js"></script>
+  <!-- <script src="https://smtpjs.com/v3/smtp.js"></script> -->
+  <!-- <script src="js/home.js"></script> -->
+
+  <script src="app/myapp.js"></script>
+  <script src="app/ApiService.js"></script>
+  <script src="app/IndexedDBService.js"></script>
+  <script src="app/ExamService.js"></script>
+  <script src="app/PDFService.js"></script>
+  <!-- <script src="APP/indexCtrl.js"></script> -->
+  <script src="app/MainCtrl.js"></script>
+  <script src="app/HomeViewCtrl.js"></script>
+  <script src="app/ConnectionsCtrl.js"></script>
+  <script src="app/ManagementCtrl.js"></script>
+  <script src="app/QuizViewCtrl.js"></script>
+  <script src="app/LoginCtrl.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <!-- <script src="html/ConnectionsView.html"></script> -->
+</body>
+
+</html>

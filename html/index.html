@@ -1,0 +1,252 @@
+<section>
+     <aside class="sidebar">
+        <div class="logo-section">
+            <div class="logo">
+                <span class="logo-text">STU</span>
+            </div>
+            <h2 class="system-title">Hệ Thống Thi Trắc Nghiệm</h2>
+        </div>
+        
+        <nav class="nav-menu">
+            <a href="#" class="nav-item active" data-view="home">
+                <i class="fas fa-home"></i>
+                <span>Trang chủ</span>
+            </a>
+            <a href="#" class="nav-item" data-view="connections">
+                <i class="fas fa-network-wired"></i>
+                <span>Kết nối</span>
+            </a>
+            <a href="#" class="nav-item" data-view="management">
+                <i class="fas fa-cogs"></i>
+                <span>Quản lý</span>
+            </a>
+            <a href="#" class="nav-item" data-view="quiz">
+                <i class="fas fa-question-circle"></i>
+                <span>Làm bài</span>
+            </a>
+        </nav>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <!-- Header -->
+        <header class="header">
+            <div class="header-left">
+                <button class="menu-toggle">
+                    <i class="fas fa-bars"></i>
+                </button>
+                <h1 class="page-title">THI TRẮC NGHIỆM</h1>
+            </div>
+            <div class="header-right">
+                <button class="notification-btn" id="notification-btn">
+                    <i class="fas fa-bell"></i>
+                    <span class="notification-badge" id="notification-badge">3</span>
+                </button>
+                
+                <!-- Notification Dropdown -->
+                <div class="notification-dropdown" id="notification-dropdown">
+                    <div class="notification-header">
+                        <div class="notification-title">
+                            <i class="fas fa-bell"></i>
+                            <span>Thông báo</span>
+                            <span class="unread-count" id="unread-count">3</span>
+                        </div>
+                        <div class="notification-actions">
+                            <button class="btn-mark-all-read" id="mark-all-read" title="Đánh dấu tất cả đã đọc">
+                                <i class="fas fa-check-double"></i>
+                            </button>
+                            <button class="btn-close" id="close-notifications">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="notification-list" id="notification-list">
+                        <!-- Notifications will be populated here -->
+                    </div>
+
+                    <div class="notification-footer">
+                        <button class="btn-view-all">Xem tất cả thông báo</button>
+                    </div>
+                </div>
+
+                <div class="user-profile" id="user-profile">
+                    <img src="https://images.pexels.com/photos/220453/pexels-photo-220453.jpeg?auto=compress&cs=tinysrgb&w=50&h=50&fit=crop&crop=face" alt="User" class="user-avatar">
+                    <span class="user-name">Admin</span>
+                </div>
+            </div>
+        </header>
+
+       
+    </main>
+
+    <!-- Dialog chọn câu hỏi -->
+    <div class="dialog-overlay" id="select-questions-dialog">
+        <div class="dialog">
+            <div class="dialog-header">
+                <h3>Chọn câu hỏi cho kỳ thi</h3>
+                <button class="dialog-close" onclick="closeDialog('select-questions-dialog')">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="dialog-content">
+                <div class="dialog-filter">
+                    <input type="text" placeholder="Tìm kiếm câu hỏi..." class="search-input" id="dialog-search">
+                    <select class="filter-select" id="dialog-subject-filter">
+                        <option value="">Tất cả môn học</option>
+                        <option>HỆ ĐIỀU HÀNH</option>
+                        <option>LẬP TRÌNH C++</option>
+                        <option>CƠ SỞ DỮ LIỆU</option>
+                    </select>
+                    <select class="filter-select" id="dialog-difficulty-filter">
+                        <option value="">Tất cả độ khó</option>
+                        <option>Dễ</option>
+                        <option>Trung bình</option>
+                        <option>Khó</option>
+                    </select>
+                </div>
+                <div class="dialog-questions-list" id="dialog-questions-list">
+                    <!-- Questions will be populated here -->
+                </div>
+                <div class="dialog-stats">
+                    Đã chọn: <span id="dialog-selected-count">0</span> câu hỏi
+                </div>
+            </div>
+            <div class="dialog-footer">
+                <button class="btn btn-outline" onclick="clearSelectedQuestions()">Bỏ chọn tất cả</button>
+                <button class="btn btn-primary" onclick="confirmSelectedQuestions()">Xác nhận</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Dialog xem chi tiết câu hỏi -->
+    <div class="dialog-overlay" id="view-question-dialog">
+        <div class="dialog">
+            <div class="dialog-header">
+                <h3>Chi tiết câu hỏi</h3>
+                <button class="dialog-close" onclick="closeDialog('view-question-dialog')">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="dialog-content">
+                <div class="question-detail">
+                    <div class="question-text" id="view-question-text">
+                        <!-- Question content will be loaded here -->
+                    </div>
+                    <div class="question-answers" id="view-question-answers">
+                        <!-- Answers will be loaded here -->
+                    </div>
+                    <div class="question-info">
+                        <div class="info-item">
+                            <strong>Độ khó:</strong> <span id="view-question-difficulty"></span>
+                        </div>
+                        <div class="info-item">
+                            <strong>Người tạo:</strong> <span id="view-question-author"></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Admin Profile Modal -->
+    <div class="modal-overlay" id="profile-modal">
+        <div class="modal-content profile-modal">
+            <div class="modal-header">
+                <h2>Thông tin tài khoản</h2>
+                <button class="btn-close" onclick="closeProfileModal()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+
+            <div class="modal-body">
+                <div class="profile-section">
+                    <div class="avatar-section">
+                        <div class="avatar-container">
+                            <img src="https://images.pexels.com/photos/220453/pexels-photo-220453.jpeg?auto=compress&cs=tinysrgb&w=200&h=200&fit=crop&crop=face" 
+                                 alt="Avatar" 
+                                 class="profile-avatar"
+                                 id="profile-avatar">
+                            <input type="file" id="avatar-upload" accept="image/*" style="display: none;">
+                            <label for="avatar-upload" class="avatar-upload-btn" id="avatar-upload-btn" style="display: none;">
+                                <i class="fas fa-camera"></i>
+                            </label>
+                        </div>
+                        <div class="profile-basic">
+                            <h3 id="profile-display-name">Nguyễn Văn Admin</h3>
+                            <p id="profile-display-position">Giảng viên</p>
+                            <span class="status-online">Đang hoạt động</span>
+                        </div>
+                    </div>
+
+                    <div class="profile-form">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>
+                                    <i class="fas fa-user"></i>
+                                    Họ và tên
+                                </label>
+                                <span class="form-value" id="name-display">Nguyễn Văn Admin</span>
+                                <input type="text" value="Nguyễn Văn Admin" class="form-input" id="name-input" style="display: none;">
+                            </div>
+
+                            <div class="form-group">
+                                <label>
+                                    <i class="fas fa-envelope"></i>
+                                    Email
+                                </label>
+                                <span class="form-value" id="email-display">admin@stu.edu.vn</span>
+                                <input type="email" value="admin@stu.edu.vn" class="form-input" id="email-input" style="display: none;">
+                            </div>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>
+                                    <i class="fas fa-phone"></i>
+                                    Số điện thoại
+                                </label>
+                                <span class="form-value" id="phone-display">0123456789</span>
+                                <input type="tel" value="0123456789" class="form-input" id="phone-input" style="display: none;">
+                            </div>
+
+                            <div class="form-group">
+                                <label>
+                                    <i class="fas fa-map-marker-alt"></i>
+                                    Địa chỉ
+                                </label>
+                                <span class="form-value" id="address-display">TP. Hồ Chí Minh</span>
+                                <input type="text" value="TP. Hồ Chí Minh" class="form-input" id="address-input" style="display: none;">
+                            </div>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Khoa/Phòng ban</label>
+                                <span class="form-value" id="department-display">Khoa Công nghệ Thông tin</span>
+                                <input type="text" value="Khoa Công nghệ Thông tin" class="form-input" id="department-input" style="display: none;">
+                            </div>
+
+                            <div class="form-group">
+                                <label>Chức vụ</label>
+                                <span class="form-value" id="position-display">Giảng viên</span>
+                                <input type="text" value="Giảng viên" class="form-input" id="position-input" style="display: none;">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="modal-footer">
+                <button class="btn btn-primary" id="edit-profile-btn" onclick="toggleEditMode()">Chỉnh sửa</button>
+                <button class="btn btn-outline" id="cancel-edit-btn" onclick="cancelEdit()" style="display: none;">Hủy</button>
+                <button class="btn btn-primary" id="save-profile-btn" onclick="saveProfile()" style="display: none;">
+                    <i class="fas fa-save"></i>
+                    Lưu thay đổi
+                </button>
+            </div>
+        </div>
+    </div>
+     <!-- <script src="../js/home.js"></script> -->
+</section>
+<script src="js/home.js" defer></script>

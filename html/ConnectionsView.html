@@ -1,0 +1,67 @@
+<section> <!-- Connections View -->
+    <div class="view" id="connections-view">
+        <div class="view-header">
+            <h2>Quản lý kết nối</h2>
+            <button class="btn btn-primary">
+                <i class="fas fa-plus"></i>
+                Nộp bài
+            </button>
+        </div>
+
+        <div class="filter-section">
+            <div class="search-box">
+                <i class="fas fa-search"></i>
+                <input type="text" placeholder="Tìm kiếm sinh viên...">
+            </div>
+            <div class="filter-controls">
+                <select class="filter-select">
+                    <option>Tất cả trạng thái</option>
+                    <option>Đang thi</option>
+                    <option>Hoàn thành</option>
+                    <option>Chưa kết nối</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="connections-card">
+            <div class="table-container">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>STT</th>
+                            <th>MSSV</th>
+                            <th>Họ & tên</th>
+                            <th>Thời gian</th>
+                            <th>Đề</th>
+                            <th>Trạng thái</th>
+                            <th>Thao tác</th>
+                        </tr>
+                    </thead>
+                    <tbody id="connections-table" ng-repeat="st in student_connections" ng-init="index = $index + 1">
+                        <tr>
+                            <td>{{index}}</td>
+                            <td>{{st.userId}}</td>
+                            <td>{{st.fullName}}</td>
+                            <td>{{st.time_login}}</td>
+                            <td>{{st.examId}}</td>
+                            <td>
+                                <span class="status-badge status-{{st.status}}">
+                                  {{st.status?'Đang thi':'Đã nợp bài'}}
+                                </span>
+                            </td>
+                            <td>
+                                <!-- <button class="btn btn-outline btn-sm" onclick="exam.viewConnection(${conn.id})"
+                                    title="Xem">
+                                    <i class="fas fa-eye"></i>
+                                </button> -->
+                                <button class="btn btn-primary btn-sm" title="Ngắt kết nối">
+                                    <i class="fas fa-sign-out-alt"></i>
+                                </button>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</section>
