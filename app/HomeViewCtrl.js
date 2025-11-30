@@ -401,6 +401,7 @@ app.controller("HomeViewCtrl", function ($scope, $rootScope, ApiService, DataSer
             if ($scope.code_room === "" || $scope.code_room.length == 0) {
                 ApiService.createCodeRoom()
                     .then(function (response) {
+                        console.log('response: ',response);
                         const data = response.data;
                         $scope.code_room = data.code;
                         $scope.publicKey = data.pKey;
