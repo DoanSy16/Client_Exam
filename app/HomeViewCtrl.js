@@ -398,7 +398,7 @@ app.controller("HomeViewCtrl", function ($scope, $rootScope, ApiService, DataSer
 
     $scope.exam = {
         createCodeRoom: function () {
-            if ($scope.code_room === "" || $scope.code_room.length == 0) {
+            if ($scope.code_room  || $scope.code_room.length == 0) {
                 ApiService.createCodeRoom()
                     .then(function (response) {
                         console.log('response: ',response);
