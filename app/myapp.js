@@ -542,6 +542,7 @@ app.run(function ($rootScope, ApiService, DataService, ExamService, SocketServic
 
 app.config(function ($routeProvider, $httpProvider) {
   $httpProvider.interceptors.push('AuthInterceptor');
+  $httpProvider.defaults.headers.common["ngrok-skip-browser-warning"] = "true";
   $routeProvider
     .when("/login", {
       templateUrl: "index.html",
