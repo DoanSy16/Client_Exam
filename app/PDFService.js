@@ -13,30 +13,102 @@ app.factory("PDFService", function ($rootScope) {
 
   return {
 
+    // exportPDF: async function (exam, user) {
+    //   const { jsPDF } = window.jspdf;
+    //   const wrapper = document.createElement('div');
+    //   wrapper.innerHTML = exam;
+    //   wrapper.style.width = "794px"; // chuẩn A4 theo px (96dpi)
+    //   wrapper.style.padding = "0";
+    //   wrapper.style.margin = "0 auto";
+    //   document.body.appendChild(wrapper);
+
+    //   await new Promise(resolve => setTimeout(resolve, 100));
+
+
+    //   const canvas = await html2canvas(wrapper, {
+    //     scale: 2,
+    //     useCORS: true,
+    //     allowTaint: false
+    //   });
+
+    //   const imgData = canvas.toDataURL("image/jpeg", 0.98);
+
+    //   // Khởi tạo PDF
+    //   const pdf = new jsPDF('p', 'mm', 'a4');
+
+    //   const pageWidth = pdf.internal.pageSize.getWidth();
+    //   const pageHeight = pdf.internal.pageSize.getHeight();
+    //   const imgWidth = pageWidth;
+    //   const imgHeight = canvas.height * (imgWidth / canvas.width);
+
+    //   let position = 0;
+
+    //   while (position < imgHeight) {
+    //     pdf.addImage(
+    //       imgData,
+    //       'JPEG',
+    //       0,
+    //       -position,
+    //       imgWidth,
+    //       imgHeight
+    //     );
+
+    //     position += pageHeight;
+
+    //     if (position < imgHeight) pdf.addPage();
+    //   }
+
+    //   pdf.save(`${convertName(user.fullname)}_${user.user_code}.pdf`);
+
+    //   wrapper.remove();
+    // },
     exportPDF: async function (exam, user) {
       const { jsPDF } = window.jspdf;
       const wrapper = document.createElement('div');
       wrapper.innerHTML = exam;
-      wrapper.style.width = "794px"; // chuẩn A4 theo px (96dpi)
+      wrapper.style.width = "794px";
       wrapper.style.padding = "0";
       wrapper.style.margin = "0 auto";
       document.body.appendChild(wrapper);
 
-      await new Promise(resolve => setTimeout(resolve, 100));
+
+      // ✅ FIX 1: gắn crossorigin + bust cache
+      const images = wrapper.querySelectorAll("img");
+      images.forEach(img => {
+        img.crossOrigin = "anonymous";
+        if (!img.src.includes("?t=")) {
+          img.src = img.src + "?t=" + Date.now();
+        }
+      });
+
+      // ✅ FIX 2: ĐỢI ẢNH LOAD XONG
+      await Promise.all(
+        [...images].map(img => {
+          return new Promise(resolve => {
+            if (img.complete && img.naturalWidth !== 0) return resolve();
+            img.onload = img.onerror = resolve;
+          });
+        })
+      );
 
 
+      // ✅ ĐỢI DOM settle
+      await new Promise(r => setTimeout(r, 300));
+
+
+      // ✅ FIX 3: html2canvas cấu hình hoàn chỉnh
       const canvas = await html2canvas(wrapper, {
         scale: 2,
         useCORS: true,
         allowTaint: false,
-        imageTimeout: 20000
+        imageTimeout: 20000,
+        backgroundColor: "#fff"
       });
+
 
       const imgData = canvas.toDataURL("image/jpeg", 0.98);
 
-      // Khởi tạo PDF
       const pdf = new jsPDF('p', 'mm', 'a4');
-
       const pageWidth = pdf.internal.pageSize.getWidth();
       const pageHeight = pdf.internal.pageSize.getHeight();
       const imgWidth = pageWidth;
@@ -45,17 +117,8 @@ app.factory("PDFService", function ($rootScope) {
       let position = 0;
 
       while (position < imgHeight) {
-        pdf.addImage(
-          imgData,
-          'JPEG',
-          0,
-          -position,
-          imgWidth,
-          imgHeight
-        );
-
+        pdf.addImage(imgData, 'JPEG', 0, -position, imgWidth, imgHeight);
         position += pageHeight;
-
         if (position < imgHeight) pdf.addPage();
       }
 
