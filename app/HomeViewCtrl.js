@@ -1,11 +1,11 @@
-app.controller("HomeViewCtrl", function ($scope, $rootScope, ApiService, DataService, SocketService, ToastService, ExamService, IndexedDBService) {
+app.controller("HomeViewCtrl", function ($scope, $rootScope, ApiService, DataService, SocketService, ToastService, ExamService, IndexedDBService, PDFService) {
     $scope.machines = parseInt(DataService.getHomeData("machines")) || 29;
     $scope.time = parseInt(DataService.getHomeData("time")) || 0;
     $scope.questions = [];
     $scope.countExamQuestions = parseInt(DataService.getHomeData("countExamQuestions")) || 0;
     $scope.selectedQuestions = DataService.getHomeData("selectedQuestions") || [];
     $scope.confirmSelectedQuestions = DataService.getHomeData("confirmSelectedQuestions") || [];
-    $scope.code_room = DataService.getHomeData("codeRoom") || "";
+    $scope.code_room = DataService.getHomeData("codeRoom") ? DataService.getHomeData("codeRoom") : "";
     $scope.data_localStorage = DataService.getHomeData("data_localStorage") || localStorage.getItem("data_localStorage") || [];
     loadExamQuestion("exam_questions", 1);
     // $scope.data_exam_questions = localStorage.getItem("data_exam_questions") ? JSON.parse(localStorage.getItem("data_exam_questions")) : (ExamService.getAll() || []);
@@ -39,7 +39,6 @@ app.controller("HomeViewCtrl", function ($scope, $rootScope, ApiService, DataSer
     async function saveExamQuestion(storeName, id, data) {
         try {
             await IndexedDBService.save(storeName, { id, data });
-            // console.log("Đã lưu/ghi đè dữ liệu key =", id);
         } catch (err) {
             console.error("Lưu dữ liệu thất bại:", err);
         }
@@ -55,35 +54,6 @@ app.controller("HomeViewCtrl", function ($scope, $rootScope, ApiService, DataSer
         }
     }
 
-    // Gọi
-
-
-
-    // Gọi hàm
-
-
-
-    // $scope.storageLocation = ['C', 'D', 'E', 'W', 'Desktop'];
-    // $scope.selectedStorageLocation = null;
-
-    // // Hàm thêm mới (chỉ chạy khi nhập giá trị chưa có)
-    // $scope.addNewLocation = function (item) {
-    //     if ($scope.storageLocation.indexOf(item) === -1) {
-    //         $scope.storageLocation.push(item);
-    //         console.log("➕ Thêm mới:", item);
-    //     }
-    //     return item;
-    // };
-
-    // // Hàm chọn (cả thêm mới và chọn cũ)
-    // $scope.onSelect = function (item, model) {
-    //     console.log("✅ Đã chọn:", item);
-    // };
-
-
-
-    // $scope.statusExam = false;
-    // JON.parse(localStorage.getItem("data_exam_questions"))
     load_init_data();
     function load_init_data() {
         const data = JSON.parse(localStorage.getItem("data_localStorage"));
@@ -94,7 +64,7 @@ app.controller("HomeViewCtrl", function ($scope, $rootScope, ApiService, DataSer
             $scope.selectedDiscipline = data.disciplines;
             $scope.selectedLevel = data.level;
             $scope.countExamQuestions = data.countExamQuestions;
-            $scope.code_room = data.code_room;
+            $scope.code_room = data.code_room || "";
             $scope.confirmSelectedQuestions = data.confirmSelectedQuestions;
             $scope.selectedQuestions = data.selectedQuestions;
             DataService.setHomeData("time", $scope.time);
@@ -182,7 +152,6 @@ app.controller("HomeViewCtrl", function ($scope, $rootScope, ApiService, DataSer
     $scope.fShowViewQuestionsDialog = function (value) {
         $scope.showViewQuestionsDialog = true;
         $scope.showViewAllQuestions = value;
-        // console.log(' $scope.showViewAllQuestions: ', $scope.showViewAllQuestions)
     };
 
     // đóng dialog
@@ -394,21 +363,15 @@ app.controller("HomeViewCtrl", function ($scope, $rootScope, ApiService, DataSer
         ToastService.show(`Đã tạo ${$scope.data_exam_questions.length} đề thi`, "success");
 
     }
-    // controler dialog
 
     $scope.exam = {
         createCodeRoom: function () {
-            if (!$scope.code_room  || $scope.code_room.length == 0) {
+            if ($scope.code_room === "" || $scope.code_room.length == 0) {
                 ApiService.createCodeRoom()
                     .then(function (response) {
-                        console.log('response: ',response);
                         const data = response.data;
                         $scope.code_room = data.code;
-                        $scope.publicKey = data.pKey;
-                        // console.log(' data.pKey: ', data.pKey)
-                        // localStorage.setItem("pk", data.pKey);
                         DataService.setHomeData("codeRoom", $scope.code_room);
-                        DataService.setHomeData("publicKey", $scope.publicKey);
                         updateDataLocalStorage();
                     })
                     .catch(function (err) {
@@ -488,6 +451,7 @@ app.controller("HomeViewCtrl", function ($scope, $rootScope, ApiService, DataSer
                         allowOutsideClick: false,
                     }).then((result) => {
                         if (result.value) {
+                            removeLocalstorage();
                             create_new_exam_questions();
                         }
                     });
@@ -509,11 +473,8 @@ app.controller("HomeViewCtrl", function ($scope, $rootScope, ApiService, DataSer
             }).then((result) => {
                 if (result.value) {
                     $scope.data_exam_questions = $scope.data_exam_questions.filter(exam => exam.examId !== id);
-                    // DataService.setHomeData("data_exam_questions", $scope.data_exam_questions);
                     ExamService.setAll($scope.data_exam_questions);
                     saveExamQuestion("exam_questions", 1, $scope.data_exam_questions);
-                    // localStorage.setItem("data_exam_questions", JSON.stringify($scope.data_exam_questions));
-
                     ToastService.show(`Đã xóa đề thi ${id}`, "success");
                 }
             });
@@ -528,19 +489,22 @@ app.controller("HomeViewCtrl", function ($scope, $rootScope, ApiService, DataSer
                 confirmButtonText: "Có",
                 cancelButtonText: "Không",
                 allowOutsideClick: false,
-            }).then((result) => {
+            }).then(async (result) => {
                 if (result.value) {
                     $scope.data_exam_questions = null;
-                    // DataService.setHomeData("data_exam_questions", $scope.data_exam_questions);
                     ExamService.setAll($scope.data_exam_questions);
-                    // localStorage.setItem("data_exam_questions", JSON.stringify($scope.data_exam_questions));
-                    // localStorage.removeItem('data_exam_questions');
                     removeExamQuestion("exam_questions", 1);
                     SocketService.emit("cancel_room", $scope.code_room);
-                    $scope.code_room = '';
+                    $scope.code_room = "";
                     $scope.isStart = false;
                     $scope.isCreate = false;
+                    await IndexedDBService.clear("data_exam_mark");
+                    await IndexedDBService.clear("data_exam_mark_excel");
+                    $rootScope.$applyAsync(() => {
+                        $rootScope.userCompleted = [];
+                    });
                     updateDataLocalStorage();
+                    removeLocalstorage();
                 }
             });
         }, copyCodeRoom: function () {
@@ -555,20 +519,42 @@ app.controller("HomeViewCtrl", function ($scope, $rootScope, ApiService, DataSer
             }
         }, startRoom: function () {
             if ($scope.isCreate) {
-                $scope.isStart = true;
-                updateDataLocalStorage();
+
                 const roomId = $scope.code_room;
                 const adminUserId = DataService.getHomeData('user_login').user_id;
-                SocketService.emit("createRoom", { roomId, adminUserId });
+                SocketService.emit("createRoom", { roomId, adminUserId }, function (response) {
+                    if (response.success) {
+                        ToastService.show(`Tạo phòng ${roomId} thành công`, "success");
+                        $scope.isStart = true;
+                        updateDataLocalStorage();
+                    }
+                });
 
             } else {
                 ToastService.show("Vui lòng tạo đề thi!", "error");
             }
+        },
+        createFile: async function (type) {
+            if (type === 'pdf') {
+                const allData = await IndexedDBService.getAll("data_exam_mark");
+                for (const d of allData) {
+                    await PDFService.exportPDF(d.html, d.data_user);
+                }
+            } else {
+                const allData = await IndexedDBService.getAll("data_exam_mark_excel");
+                await PDFService.exportExcel(allData);
+            }
+
+
         }
 
     };
 
-
+    function removeLocalstorage() {
+        localStorage.removeItem('data_user_connections');
+        localStorage.removeItem('notification_count_data');
+        localStorage.removeItem('notification_data');
+    }
 
 
 });

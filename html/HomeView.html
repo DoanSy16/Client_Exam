@@ -108,8 +108,9 @@
                     <div class="form-group">
                         <label>Thời gian (phút)</label>
                         <div class="input-with-controls">
-                         
-                            <input  ng-disabled="isStart" type="number" min="1" id="time-input" ng-model="time" ng-change="onTimeChange()">
+
+                            <input ng-disabled="isStart" type="number" min="1" id="time-input" ng-model="time"
+                                ng-change="onTimeChange()">
                             <div class="input-controls">
                                 <button ng-disabled="isStart" class="control-btn"
                                     ng-click="adjustValue('time-input', 1)">+</button>
@@ -119,13 +120,14 @@
                         </div>
                     </div>
 
-                    <div class="form-group" >
+                    <div class="form-group">
                         <label>Số câu hỏi</label>
                         <div class="input-with-controls">
-                            <input ng-disabled="isStart" type="number" min="0" ng-model="countExamQuestions" id="question-count-input"
-                                ng-change="onCountQuestionsChange()">
+                            <input ng-disabled="isStart" type="number" min="0" ng-model="countExamQuestions"
+                                id="question-count-input" ng-change="onCountQuestionsChange()">
                             <div class="input-controls">
-                                <button ng-disabled="isStart" class="control-btn" ng-click="adjustValue('question-count-input', 1)">+</button>
+                                <button ng-disabled="isStart" class="control-btn"
+                                    ng-click="adjustValue('question-count-input', 1)">+</button>
                                 <button ng-disabled="isStart" class="control-btn"
                                     ng-click="adjustValue('question-count-input', -1)">-</button>
                             </div>
@@ -146,8 +148,8 @@
                             </option>
                         </select> -->
 
-                        <select ng-disabled="isStart" class="select-input" id="subject-select" ng-model="selectedDiscipline"
-                            ng-change="logDiscipline(selectedDiscipline)"
+                        <select ng-disabled="isStart" class="select-input" id="subject-select"
+                            ng-model="selectedDiscipline" ng-change="logDiscipline(selectedDiscipline)"
                             ng-options="d.discipline_id as d.name_discipline for d in h_Disciplines">
                         </select>
 
@@ -155,8 +157,8 @@
 
                     <div class="form-group">
                         <label>Độ khó</label>
-                        <select ng-disabled="isStart" class="select-input" id="difficulty-select" ng-model="selectedLevel"
-                            ng-change="logLevel(selectedLevel)"
+                        <select ng-disabled="isStart" class="select-input" id="difficulty-select"
+                            ng-model="selectedLevel" ng-change="logLevel(selectedLevel)"
                             ng-options="l.level_id as l.name_level for l in h_level_questions">
                         </select>
 
@@ -169,8 +171,9 @@
                         </select> -->
                         <div style="display: flex; flex-direction: row; gap: 8px;">
                             <input type="text" id="test-count-input" ng-model="code_room" readonly>
-                            <button ng-disabled="isStart" ng-class="{'hide': code_room, 'show': !code_room}" class="btn "
-                                style="background-color: green; color: white;" ng-click="exam.createCodeRoom()">Tạo
+                            <button ng-disabled="isStart" ng-class="{'hide': code_room, 'show': !code_room}"
+                                class="btn " style="background-color: green; color: white;"
+                                ng-click="exam.createCodeRoom()">Tạo
                                 phòng</button>
                             <button ng-if="code_room" class="btn btn-primary" ng-click="exam.copyCodeRoom()">Sao
                                 chép</button>
@@ -179,47 +182,52 @@
                     </div>
                     <div class="form-group">
                         <label>Tài liệu</label>
-                        <select ng-disabled="isStart" class="select-input" id="difficulty-select" ng-model="selectedDocument"
-                            ng-change="logDocument(selectedDocument)" ng-options="d.id as d.name for d in document">
+                        <select ng-disabled="isStart" class="select-input" id="difficulty-select"
+                            ng-model="selectedDocument" ng-change="logDocument(selectedDocument)"
+                            ng-options="d.id as d.name for d in document">
                         </select>
 
                     </div>
-                    <div class="form-group">
-                        <label>Nơi lưu trữ</label>
-                        <input list="levelList" ng-model="selectedStorageLocation"
-                            ng-change="logStorageLocation(selectedStorageLocation)" class="select-input" />
+                    <div class="form-group file-export-group">
 
-                        <datalist id="levelList">
-                            <option ng-repeat="sl in storageLocation" value="{{sl}}"></option>
-                        </datalist>
+                        <div class="file-header">
+                            <input type="checkbox" class="file-checkbox" ng-model="$root.autoexportPDF">
+                            <label class="file-label">Tạo file tự động</label>
+                        </div>
+
+                        <div class="file-buttons">
+                            <button ng-disabled="!userCompleted.length>0" class="btn excel-btn"
+                                ng-click="exam.createFile('excel')">
+                                Tạo file Excel
+                            </button>
+
+                            <button ng-disabled="!userCompleted.length>0" class="btn pdf-btn"
+                                ng-click="exam.createFile('pdf')">
+                                Tạo file PDF
+                            </button>
+
+                        </div>
+
+
                     </div>
-                    <!-- <div class="form-group">
-                        <label>Nơi lưu trữ</label>
-                        <ui-select ng-model="selectedStorageLocation" theme="bootstrap"
-                            tagging-func="addNewLocation($item)" tagging-label="(mới)"
-                            on-select="onSelect($item, $model)" title="Chọn hoặc nhập">
 
-                            <ui-select-match placeholder="Chọn hoặc nhập...">
-                                {{$select.selected}}
-                            </ui-select-match>
-
-                            <ui-select-choices repeat="sl in storageLocation | filter:$select.search">
-                                {{sl}}
-                            </ui-select-choices>
-                        </ui-select>
-                    </div> -->
-
-
+                </div>
+                <div ng-if="userCompleted.length>0" class="card-footer">
+                    <p> Có {{userCompleted.length}} user nộp bài</p>
                 </div>
 
                 <div class="action-buttons">
-                    <button ng-disabled="isStart" class="btn btn-primary" ng-click="fShowSelectQuestionsDialog()">Chọn câu
+                    <button ng-disabled="isStart" class="btn btn-primary" ng-click="fShowSelectQuestionsDialog()">Chọn
+                        câu
                         hỏi</button>
-                    <button ng-disabled="isStart" class="btn btn-secondary" ng-click="exam.createExamQuestions()" style="color: white;">Tạo
+                    <button ng-disabled="isStart" class="btn btn-secondary" ng-click="exam.createExamQuestions()"
+                        style="color: white;">Tạo
                         đề</button>
-                    <button ng-disabled="isStart" class="btn" style="background-color: green; color: white;" ng-click="exam.startRoom()">Bắt
+                    <button ng-disabled="isStart" class="btn" style="background-color: green; color: white;"
+                        ng-click="exam.startRoom()">Bắt
                         đầu</button>
-                    <button ng-disabled="!isStart" class="btn btn-danger" ng-click="exam.deleteAllExamQuestions()">Xóa đề</button>
+                    <button ng-disabled="!isStart" class="btn btn-danger" ng-click="exam.deleteAllExamQuestions()">Xóa
+                        đề</button>
                 </div>
             </div>
 
@@ -255,7 +263,7 @@
                                         ng-click="fShowViewQuestionsDialog(data.questions)">
                                         <i class="fas fa-eye"></i>
                                     </button>
-                                    <button  ng-disabled="isStart"  class="btn btn-danger btn-sm" title="Xóa"
+                                    <button ng-disabled="isStart" class="btn btn-danger btn-sm" title="Xóa"
                                         ng-click="exam.deleteExamQuestion(data.examId)" ng-disabled="data.isSelected">
                                         <i class="fas fa-trash"></i>
                                     </button>

@@ -58,6 +58,10 @@
 
     <script src="lb/jspdf.umd.min.js"></script>
     <script src="lb/html2canvas.min.js"></script>
+    <!-- EXCEL -->
+    <script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/file-saver@2.0.5/dist/FileSaver.min.js"></script>
+
     <!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script> -->
 
 
@@ -136,7 +140,7 @@
                         <div class="notification-title">
                             <i class="fas fa-bell"></i>
                             <span>Thông báo</span>
-                            <span class="unread-count" id="unread-count">{{notification_count_data}}</span>
+                            <span ng-if="notification_count_data>0" class="unread-count" id="unread-count">{{notification_count_data}}</span>
                         </div>
                         <div class="notification-actions">
                             <select class="select-input small-select" ng-model="selectedStatus"
@@ -169,7 +173,7 @@
                                     <div class="notification-meta">
                                         <span class="notification-time">{{formatTimeAgo(noti.time)}}</span>
                                         <button class="btn-mark-read" ng-if="!noti.status" title="Xác nhận"
-                                            ng-click="acceptReconnect(noti.user_id)">
+                                            ng-click="acceptReconnect(noti.id)">
                                             <i class="fas fa-check"></i>
                                         </button>
 
@@ -177,8 +181,6 @@
                                 </div>
                             </div>
                         </div>
-
-
                     </div>
 
                     <div class="notification-footer">

@@ -2,23 +2,22 @@
     <div class="view" id="connections-view">
         <div class="view-header">
             <h2>Quản lý kết nối</h2>
-            <button class="btn btn-primary">
+            <!-- <button class="btn btn-primary">
                 <i class="fas fa-plus"></i>
                 Nộp bài
-            </button>
+            </button> -->
         </div>
 
         <div class="filter-section">
             <div class="search-box">
                 <i class="fas fa-search"></i>
-                <input type="text" placeholder="Tìm kiếm sinh viên...">
+                <input type="text" placeholder="Tìm kiếm câu hỏi..." class="search-input" ng-change="searchConnect()"
+                    ng-model="change_search_connect">
             </div>
             <div class="filter-controls">
-                <select class="filter-select">
-                    <option>Tất cả trạng thái</option>
-                    <option>Đang thi</option>
-                    <option>Hoàn thành</option>
-                    <option>Chưa kết nối</option>
+                <select class="select-input small-select" ng-model="selectedStatusConnect"
+                    ng-change="filterStatusConnect(selectedStatusConnect)"
+                    ng-options="s.value as s.label for s in fill_status_user">
                 </select>
             </div>
         </div>
@@ -32,21 +31,19 @@
                             <th>MSSV</th>
                             <th>Họ & tên</th>
                             <th>Thời gian</th>
-                            <th>Đề</th>
                             <th>Trạng thái</th>
                             <th>Thao tác</th>
                         </tr>
                     </thead>
-                    <tbody id="connections-table" ng-repeat="st in student_connections" ng-init="index = $index + 1">
-                        <tr>
+                    <tbody id="connections-table">
+                        <tr  ng-repeat="st in student_connections track by $index" ng-init="index = $index + 1">
                             <td>{{index}}</td>
                             <td>{{st.userId}}</td>
-                            <td>{{st.fullName}}</td>
+                            <td>{{st.fullname}}</td>
                             <td>{{st.time_login}}</td>
-                            <td>{{st.examId}}</td>
                             <td>
-                                <span class="status-badge status-{{st.status}}">
-                                  {{st.status?'Đang thi':'Đã nợp bài'}}
+                                <span class="status-badge status-{{st.user_status_connect}}">
+                                    {{st.user_status_connect=='online'?'Đang thi':'Đã nộp bài'}}
                                 </span>
                             </td>
                             <td>
@@ -54,10 +51,13 @@
                                     title="Xem">
                                     <i class="fas fa-eye"></i>
                                 </button> -->
-                                <button class="btn btn-primary btn-sm" title="Ngắt kết nối">
+                                <button class="btn btn-primary btn-sm" ng-click="disconnect(st.userId)" title="Ngắt kết nối">
                                     <i class="fas fa-sign-out-alt"></i>
                                 </button>
                             </td>
+                        </tr>
+                        <tr ng-if="!student_connections || student_connections.length==0">
+                            <td colspan="6" class="text-center">Không có dữ liệu</td>
                         </tr>
                     </tbody>
                 </table>

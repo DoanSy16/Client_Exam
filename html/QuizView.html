@@ -45,6 +45,7 @@
                                     <i class="fas fa-times"></i>
                                 </button>
                             </div>
+                            <p>{{img.answer_id}}</p>
                             <input type="text" class="answer-input" ng-model="img.content"
                                 placeholder="Nhập mô tả cho ảnh" />
                         </div>
@@ -62,7 +63,8 @@
                         ng-repeat="ans in fill_data_exam.Answers_Text track by $index"
                         ng-class="{'correct': ans.answer_option_id == fill_data_exam.correct_answer[0].correct_answer}">
                         <span class="option-label"> {{answerArr(ans.answer_option_id)}}</span>
-                        <input type="text" ng-model="ans.text_answer" class="answer-input">
+                        <input type="text" ng-model="ans.text_answer" ng-change="onAnswerChange(ans)"
+                            class="answer-input">
                         <div class="button-group" style="display: flex;  gap: 8px">
                             <button ng-hide="ans.answer_option_id== fill_data_exam.correct_answer[0].correct_answer"
                                 class="btn-check-answer" ng-click="confirmAnswer(ans.answer_option_id)">
@@ -114,7 +116,7 @@
                         <label>Chọn môn học:</label>
                         <select class="select-input" id="quiz-subject-select" ng-model="selectedDiscipline"
                             ng-change="logDiscipline(selectedDiscipline)"
-                            ng-options="d.discipline_id as d.name_discipline for d in h_Disciplines">
+                            ng-options="d as d.name_discipline for d in h_Disciplines track by d.discipline_id">
                         </select>
                     </div>
                     <div class="form-group">
@@ -157,7 +159,21 @@
             </div> -->
 
             <div class="search-questions">
-                <input type="text" placeholder="Tìm kiếm câu hỏi..." class="search-input" id="search-questions-input">
+                <div class="result">
+                    <label>Tìm thấy {{data_exam_quiz_temp.length}} kết quả</label>
+                </div>
+                <input type="text" placeholder="Tìm kiếm câu hỏi..." class="search-input" ng-change="search()"
+                    ng-model="change_search">
+            </div>
+            <div>
+                <div class="result"><label>Đã chọn {{selectedQuestionTable.length}} câu hỏi</label></div>
+                <div>
+                    <button class="btn btn-primary" ng-click="toggleSelectAll()" style="width: 100px;"> {{
+                        selectedQuestionTable.length ===
+                        data_exam_quiz_temp.length ? 'Hủy' : 'Chọn tất cả' }}</button>
+                    <button ng-disabled="selectedQuestionTable.length==0" class="btn btn-danger"
+                        ng-click="deleteChooseQuestions()">Xóa</button>
+                </div>
             </div>
         </div>
 
@@ -166,16 +182,26 @@
                 <table class="data-table">
                     <thead>
                         <tr>
-                            <th>STT</th>
-                            <th>Câu hỏi</th>
-                            <th>Cấp độ</th>
-                            <th>Người thêm</th>
-                            <th>Thao tác</th>
+                            <th class="col-stt">STT</th>
+                            <th class="col-stt">Chọn</th>
+                            <th class="col-question">Câu hỏi</th>
+                            <th class="col-level">Độ khó</th>
+                            <th class="col-user">Người tạo</th>
+                            <th class="col-action">Thao tác</th>
                         </tr>
                     </thead>
                     <tbody id="questions-bank-table">
-                        <tr ng-repeat="d in data_exam_quiz track by d.question_id">
-                            <td>{{$index + 1}}</td>
+                        <tr ng-repeat="d in data_exam_quiz_temp track by d.question_id">
+                            <td>{{$index + 1}}
+                            </td>
+                            <td>
+                                <div class="question-checkbox">
+                                    <input type="checkbox" id="q-{{d.question_id}}"
+                                        ng-checked="selectedQuestionTable.indexOf(d.question_id) !== -1"
+                                        ng-click="toggleQuestionSelectionTable(d.question_id)">
+                                    <label for="q-{{d.question_id}}"></label>
+                                </div>
+                            </td>
                             <td>
                                 {{d.text_question}}
                                 <span class="image-indicator" ng-if="d.count_image > 0">
@@ -188,23 +214,21 @@
                                 </span>
                             </td>
                             <td>{{d.fullname}}</td>
-                            <td>
-                                <button class="btn btn-outline btn-sm" title="Chỉnh sửa"
+                            <td class="action-buttons">
+                                <button class=" btn-sm btn btn-outline" title="Chỉnh sửa"
                                     ng-click="load_data_ctrl($index)">
                                     <i class="fas fa-edit"></i>
                                 </button>
                                 <button ng-click="deleteQuestions(d.question_id,d.text_question)"
-                                    class="btn btn-danger btn-sm" title="Xóa">
+                                    class="  btn-sm btn btn-danger" title="Xóa">
                                     <i class="fas fa-trash"></i>
                                 </button>
                             </td>
                         </tr>
-                        <tr ng-if="!data_exam_quiz">
+                        <tr ng-if="!data_exam_quiz_temp || data_exam_quiz_temp.length==0">
                             <td colspan="5" class="text-center">Không có dữ liệu</td>
                         </tr>
                     </tbody>
-
-
                 </table>
             </div>
         </div>

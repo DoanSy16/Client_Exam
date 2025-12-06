@@ -705,6 +705,13 @@
     border-bottom: 1px solid var(--gray-100);
     vertical-align: middle;
 }
+.custom-ui .data-table td.action-buttons {
+    display: flex;
+    align-items: center;
+    gap: 2px;   
+    white-space: nowrap; 
+}
+
 
 .custom-ui .data-table tbody tr {
     transition: all 0.2s ease;
@@ -714,6 +721,34 @@
     background: var(--gray-50);
 }
 
+/* Cột STT */
+.custom-ui .col-stt {
+    width: 60px;
+    text-align: center;
+}
+
+/* Câu hỏi dài */
+.custom-ui .col-question {
+    width: 45%;
+    min-width: 300px;
+}
+
+/* Độ khó */
+.custom-ui .col-level {
+    width: auto;
+}
+
+/* Người tạo */
+.custom-ui .col-user {
+    width:auto;
+}
+
+/* Nút */
+.custom-ui .col-action {
+    width: auto;
+}
+
+
 .custom-ui .status-badge {
     padding: 4px 12px;
     border-radius: 20px;
@@ -722,7 +757,7 @@
     white-space: nowrap;
 }
 
-.custom-ui .status-true {
+.custom-ui .status-online {
     background: #DCFCE7;
     color: #166534;
 }
@@ -730,6 +765,10 @@
 .custom-ui .status-offline {
     background: #FEE2E2;
     color: #991B1B;
+}
+.status-testing {
+    background: #DBEAFE;
+    color: #1E40AF;
 }
 
 .custom-ui .status-false {
@@ -935,7 +974,7 @@
     flex-shrink: 0;
 }
 
-.custom-ui .answer-option.correct  .option-label {
+.custom-ui .answer-option.correct .option-label {
     background: var(--success-color);
     color: var(--white);
 }
@@ -969,7 +1008,7 @@
 
 
 .custom-ui .btn-check-answer {
-   position: absolute;
+    position: absolute;
     top: 8px;
     right: 40px;
     width: 24px;
@@ -990,7 +1029,7 @@
 
 
 .custom-ui .answer-option:hover .btn-remove-answer,
-.custom-ui .answer-option:hover  .btn-check-answer {
+.custom-ui .answer-option:hover .btn-check-answer {
     opacity: 1;
 }
 
@@ -1186,6 +1225,7 @@
 .custom-ui .data-table td .btn-sm {
     margin-right: 4px;
 }
+
 
 .custom-ui .image-indicator {
     display: inline-flex;
@@ -1835,13 +1875,107 @@ html {
 .custom-ui .btn-save {
     background-color: #059669;
 }
+
 .custom-ui .small-select {
     font-size: 12px;
     padding: 4px 8px;
     height: 30px;
     line-height: 30px;
 }
+
 button:focus {
     outline: none !important;
     box-shadow: none !important;
+}
+
+/*  */
+/* Tổng */
+.file-export-group {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+/* Dòng 1 */
+.file-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+/* Label */
+.file-label {
+    margin: 0;
+    font-weight: 600;
+}
+
+/* FIX LỖI CHECKBOX BỊ GIÃN */
+.file-checkbox {
+    width: auto !important;
+    margin: 0;
+    transform: scale(1.2);
+}
+
+/* Dòng 2 */
+.file-buttons {
+    display: flex;
+    gap: 15px;
+}
+
+/* Button */
+.file-buttons .btn {
+    flex: 1;
+    font-weight: 600;
+    border-radius: 8px;
+    padding: 8px 14px;
+}
+
+/* Màu */
+.excel-btn {
+    background: #198754;
+    color: white;
+}
+
+.pdf-btn {
+    background: #dc3545;
+    color: white;
+}
+
+/* Disable */
+.file-buttons .btn:disabled {
+    background: #bbb;
+    cursor: not-allowed;
+}
+
+.card-footer {
+    width: 100%;
+    border-bottom: 1px solid var(--gray-200);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 10px;
+    background-color: rgba(0, 0, 0, 0.03);
+    border-radius: 6px;
+    box-sizing: border-box; 
+}
+
+.card-footer p {
+    margin: 0;            
+    font-size: 15px;
+    font-weight: 600;       
+    color: #6b7280;        
+}
+
+.result{
+    width: 100%;
+    text-align: center;
+    display: flex;
+    justify-content: center; 
+    align-items: center;    
+    height: auto;    
+}
+.result label{
+    font-weight: 600;
+    font-size: 12px;
+    color: var(--gray-500);
 }

@@ -6,7 +6,8 @@ app.service("IndexedDBService", function ($q) {
     // Danh sách các store bạn muốn tạo
     const STORES = [
         { name: "exam_questions", key: "id" },
-        { name: "data_exam_mark", key: "id" }
+        { name: "data_exam_mark", key: "id" },
+        { name: "data_exam_mark_excel", key: "id" }
     ];
 
     let db = null;
@@ -49,6 +50,27 @@ app.service("IndexedDBService", function ($q) {
             });
         });
     };
+    //---INSERT--
+    this.insert = function (storeName, data) {
+        return openDB().then(() => {
+            return $q((resolve, reject) => {
+                const tx = db.transaction([storeName], "readwrite");
+                const store = tx.objectStore(storeName);
+
+                // Gán id nếu store.key = "id"
+                if (!data.id) {
+                    data.id = Date.now();  // hoặc UUID
+                }
+
+                const req = store.add(data);
+
+                req.onsuccess = () => resolve(true);
+                req.onerror = e => reject(e);
+            });
+        });
+    };
+
+
 
     // ---- GET ONE ----
     this.get = function (storeName, id) {
@@ -92,5 +114,19 @@ app.service("IndexedDBService", function ($q) {
             });
         });
     };
+    //Clear
+    this.clear = function (storeName) {
+        return openDB().then(() => {
+            return $q((resolve, reject) => {
+                const tx = db.transaction([storeName], "readwrite");
+                const store = tx.objectStore(storeName);
+                const req = store.clear();
+
+                req.onsuccess = () => resolve(true);
+                req.onerror = e => reject(e);
+            });
+        });
+    };
+
 
 });

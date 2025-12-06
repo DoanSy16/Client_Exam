@@ -14,16 +14,17 @@ var app = angular.module("myApp", ["ngRoute", "ngAnimate", 'ui.select']).directi
     }
   };
 }]);
-app.run(function ($rootScope, ApiService, DataService, ExamService, SocketService, ToastService, $window, IndexedDBService, $document, $location, PDFService) {
+app.run(function ($rootScope, ApiService, DataService, ExamService, SocketService, ToastService, $window, IndexedDBService, $timeout, PDFService) {
   $rootScope.data_user_connections = [];
+  $rootScope.data_exam_questions = [];
   $rootScope.modelUser = false;
   $rootScope.notification_dropdown = false;
-  $rootScope.notification_data = JSON.parse(localStorage.getItem('notification_data')) || [];
-  $rootScope.notification_data_tmp = $rootScope.notification_data || [];
+  $rootScope.notification_data = JSON.parse(localStorage.getItem('notification_data')) || {};
+  $rootScope.notification_data_tmp = $rootScope.notification_data || {};
   $rootScope.notification_count_data = parseInt(localStorage.getItem('notification_count_data')) || 0;
   $rootScope.user = [];
-  //  localStorage.setItem('notification_data',$rootScope.notification_data);
-  //       localStorage.setItem('notification_count_data',$rootScope.notification_count_data);
+  $rootScope.autoexportPDF = true;
+  $rootScope.userCompleted = [];
   DataService.setHomeData('data_user_connections', $rootScope.data_user_connections);
   let data = [];
 
@@ -42,12 +43,14 @@ app.run(function ($rootScope, ApiService, DataService, ExamService, SocketServic
     if (token && !$rootScope.initialized) {
       $rootScope.initialized = true;
       $rootScope.user = JSON.parse(localStorage.getItem('user'));
+      $rootScope.userCompleted = await IndexedDBService.getAll("data_exam_mark");
       data = await JSON.parse(localStorage.getItem('data_localStorage'));
       DataService.setHomeData('user_login', $rootScope.user);
-      // console.log('data.code_room: ',$rootScope.user)
+      let data_load = await loadExamQuestion("exam_questions", 1);
+      $rootScope.data_exam_questions = angular.copy(data_load);
       if (data && data.code_room)
         SocketService.emit("reconnect_user", { userId: $rootScope.user.user_id, roomId: data.code_room });
-
+      count_notification('ALL');
       //Load data level 
       ApiService.getLevels()
         .then(function (response) {
@@ -114,19 +117,21 @@ app.run(function ($rootScope, ApiService, DataService, ExamService, SocketServic
   // Set mặc định = Tất cả
   $rootScope.selectedStatus = 'ALL';
   $rootScope.filterStatus = function (value) {
-    let dem = 0;
     if (value === 'ALL') {
       $rootScope.notification_data_tmp = $rootScope.notification_data;
       return;
     }
-    $rootScope.notification_data_tmp = $rootScope.notification_data.filter(n => {
-      const ok = !n.status && n.type === value;
-      if (ok) dem++;
-      return n.type === value;
-    });
-
-    $rootScope.notification_count_data = dem;
+    $rootScope.notification_data_tmp =
+      Object.values($rootScope.notification_data).filter(n => {
+        return n.type === value;
+      });
+    count_notification(value);
   };
+  function count_notification(value) {
+    $rootScope.notification_count_data = Object.values($rootScope.notification_data)
+      .filter(n => !n.status && n.type === value)
+      .length;
+  }
   async function loadExamQuestion(storeName, id) {
     try {
       const res = await IndexedDBService.get(storeName, id);
@@ -143,6 +148,14 @@ app.run(function ($rootScope, ApiService, DataService, ExamService, SocketServic
       console.error("Lưu dữ liệu thất bại:", err);
     }
   }
+  async function insertExamQuestion(storeName, row) {
+    try {
+      await IndexedDBService.insert(storeName, row);
+    } catch (err) {
+      console.error("Insert lỗi:", err);
+    }
+  }
+
 
 
 
@@ -156,15 +169,22 @@ app.run(function ($rootScope, ApiService, DataService, ExamService, SocketServic
 
 
   SocketService.on("select_exam", async function (data) {
-    const examData = await loadExamQuestion("exam_questions", 1);
-    $rootScope.$apply(() => {
-      $rootScope.data_exam_questions = examData || ExamService.getAll();
-    });
+    if (data.users) {
+      $rootScope.data_user_connections = data.users;
+    }
+    $rootScope.data_exam_questions = $rootScope.data_exam_questions ? $rootScope.data_exam_questions : ExamService.getAll();
 
-    // $rootScope.data_exam_questions = JSON.parse(localStorage.getItem('data_exam_questions')) || ExamService.getAll();
-    console.log('$rootScope.data_exam_questions: ', $rootScope.data_exam_questions.length)
-    const { userId, name, className, socketId } = data;
-    console.log(`User ${userId} yêu cầu đề thi`);
+    const {
+      userId,
+      fullname: name,
+      className,
+      socketId,
+      status_exam,
+      time_login,
+      user_status_connect
+    } = data.user;
+
+
 
     // Tìm đề chưa bị khóa
     const index = $rootScope.data_exam_questions.findIndex(q => !q.isSelected);
@@ -174,16 +194,17 @@ app.run(function ($rootScope, ApiService, DataService, ExamService, SocketServic
       return;
     }
     // Lấy đề
+    const data_localStorage = localStorage.getItem('data_localStorage') ? JSON.parse(localStorage.getItem('data_localStorage')) : DataService.getHomeData("data_localStorage") || [];
     const examTemp = $rootScope.data_exam_questions[index];
     const exam = {
       ...examTemp,
       isSelected: userId,
       nameSelected: name,
       classNameSelected: className,
-      time: parseInt(DataService.getHomeData("time")),
+      time: parseInt(data_localStorage.time ? data_localStorage.time : DataService.getHomeData("time")),
       countQuestions: (examTemp.questions).length,
-      discipline_name: ($rootScope.Disciplines[parseInt(DataService.getHomeData("Disciplines")) - 1]).name_discipline,
-      discipline_id: ($rootScope.Disciplines[parseInt(DataService.getHomeData("Disciplines")) - 1]).discipline_id
+      discipline_name: ($rootScope.Disciplines[data_localStorage.disciplines - 1]).name_discipline,
+      discipline_id: ($rootScope.Disciplines[data_localStorage.disciplines - 1]).discipline_id
     };
 
     // Cập nhật trong mảng
@@ -193,24 +214,26 @@ app.run(function ($rootScope, ApiService, DataService, ExamService, SocketServic
       nameSelected: name
 
     };
-    $rootScope.data_user_connections.push({
-      userId: userId,
-      fullName: name,
-      time_login: new Date().toLocaleString("vi-VN", { hour12: false }),
-      examId: examTemp.examId,
-      status: true
-    });
 
-    DataService.setHomeData('data_user_connections', $rootScope.data_user_connections);
-    localStorage.setItem('data_user_connections', JSON.stringify($rootScope.data_user_connections));
     ExamService.setAll($rootScope.data_exam_questions);
-    // localStorage.setItem("data_exam_questions", JSON.stringify($rootScope.data_exam_questions))
     saveExamQuestion("exam_questions", 1, $rootScope.data_exam_questions);
     ToastService.show(`${name} đã kết nối!`, "success");
-    console.log($rootScope.data_exam_questions);
-    update_data_notification('Thông tin mới', userId, name, exam.examId, 'CONNECTED', 'đã tham gia phòng thi!', true)
+    update_data_notification(Date.now(), 'Thông tin mới', userId, name, exam.examId, 'CONNECTED', 'đã tham gia phòng thi!', true)
+    update_data_count_data();
     // Trả đề về cho user
-    SocketService.emit("exam_assigned", { roomId: DataService.getHomeData("codeRoom"), userId, exam });
+
+    SocketService.emit("exam_assigned", { roomId: data_localStorage.code_room || DataService.getHomeData("codeRoom"), userId, exam }, function (response) {
+      if (response.success) {
+        $timeout(() => {
+          $rootScope.data_user_connections = response.data;
+          DataService.setHomeData('data_user_connections', $rootScope.data_user_connections);
+          localStorage.setItem('data_user_connections', JSON.stringify($rootScope.data_user_connections));
+        })
+
+      } else {
+        console.error("Lỗi exam_assigned:", response.error);
+      }
+    });
 
     // Đồng thời báo admin biết user nào đã được phân đề gì
     // io.to(rooms[roomId].admin).emit("exam_assigned_admin", {
@@ -218,57 +241,49 @@ app.run(function ($rootScope, ApiService, DataService, ExamService, SocketServic
     //     exam
     // });
 
-    console.log(`User ${userId} đã nhận đề: ${exam.examId}`);
+    // console.log(`User ${userId} đã nhận đề: ${exam.examId}`);
   });
-  let data_exam_mark = [];
-  SocketService.on("send_data_to_admin_mark", function (data) {
 
+  SocketService.on("send_data_to_admin_mark", async function (data) {
     const exam = data.html;
     const user = data.data_user;
-    // console.log('exam.isSelected: ', exam);
-    // localStorage.setItem('daso',JSON.stringify(dat_so));
-    // $rootScope.exam.push({
-    //   mssv: exam.isSelected,
-    //   fullName: exam.nameSelected,
-    //   class: exam.classNameSelected,
-    //   mark: exam.mark
-    // });
-    data_exam_mark.push(exam);
-    saveExamQuestion("data_exam_mark", 2, data_exam_mark);
+    await insertExamQuestion("data_exam_mark", data);
+    await insertExamQuestion("data_exam_mark_excel", user);
+    const allData = await IndexedDBService.getAll("data_exam_mark");
+    $timeout(() => {
+      $rootScope.userCompleted = allData;
+    });
 
-    DataService.setHomeData('data_exam_excel', $rootScope.exam);
-    PDFService.exportPDF(exam, user);
-    // $rootScope.exam = data.d;
-    // var element = document.getElementById('examPdf');
-    // var opt = {
-    //   margin: 10,
-    //   filename: `${$rootScope.exam.nameSelected}_${$rootScope.exam.isSelected}.pdf`,
-    //   image: { type: 'jpeg', quality: 0.98 },
-    //   html2canvas: { scale: 2, useCORS: true },
-    //   jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
-    // };
+    if ($rootScope.autoexportPDF) {
+      await PDFService.exportPDF(exam, user);
+    }
 
-    // html2pdf().set(opt).from(element).save();
   });
   SocketService.on("room_deleted", (roomId) => {
     ToastService.show(`Đã xóa tất cả đề thi!`, "success");
   });
-  SocketService.on("roomCreated", (roomId) => {
-    ToastService.show(`Tạo phòng ${roomId} thành công`, "success");
+  SocketService.on("admin_reconnected", (response) => {
+    $rootScope.data_user_connections = response.data;
+    DataService.setHomeData('data_user_connections', $rootScope.data_user_connections);
+    localStorage.setItem('data_user_connections', JSON.stringify($rootScope.data_user_connections));
+
   });
 
+
   SocketService.on("send_request_reconect_user", ({ user }) => {
-    // console.log('user: ', user);
-    update_data_notification('Yêu cầu tham gia', user.studentId, user.fullname, user.examId, 'RECONECTED', 'yêu cầu vào phòng!', false);
-    $rootScope.acceptReconnect = function (user_id) {
-      console.log('user_id: ', user_id)
+    update_data_notification(Date.now(), 'Yêu cầu tham gia', user.studentId, user.fullname, user.examId, 'RECONECTED', 'yêu cầu vào phòng!', false);
+    update_data_count_data();
+    $rootScope.acceptReconnect = function (id_noti) {
       SocketService.emit("admin_accept_reconnect", { user });
+      update_data_notification(id_noti, 'Yêu cầu tham gia', user.studentId, user.fullname, user.examId, 'RECONECTED', 'yêu cầu vào phòng!', true);
     };
   });
 
-  function update_data_notification(title, userId, name, examId, type, message, status) {
+
+  function update_data_notification(id_noti, title, userId, name, examId, type, message, status) {
     const new_message = `${name} ${message}`;
-    $rootScope.notification_data.push({
+    $rootScope.notification_data[id_noti] = {
+      id: id_noti,
       title: title,
       user_id: userId,
       user_name: name,
@@ -277,11 +292,15 @@ app.run(function ($rootScope, ApiService, DataService, ExamService, SocketServic
       type: type,
       time: Date.now(),
       status: status
-    });
+    }
+
     $rootScope.notification_data_tmp = $rootScope.notification_data;
     DataService.setHomeData('notification_data', $rootScope.notification_data);
     localStorage.setItem('notification_data', JSON.stringify($rootScope.notification_data));
 
+
+  }
+  function update_data_count_data() {
     $rootScope.notification_count_data = $rootScope.notification_count_data + 1;
     DataService.setHomeData('notification_count_data', $rootScope.notification_count_data);
     localStorage.setItem('notification_count_data', $rootScope.notification_count_data);
@@ -305,7 +324,6 @@ app.run(function ($rootScope, ApiService, DataService, ExamService, SocketServic
           SocketService.emit("cancel_room", data.code_room);
         removeExamQuestion("exam_questions", 1);
         indexedDB.deleteDatabase("ExamDB");
-
         $window.location.href = 'index.html';
       }
     });
@@ -522,18 +540,18 @@ app.run(function ($rootScope, ApiService, DataService, ExamService, SocketServic
   $rootScope.getOptionLetter = function (index) {
     return String.fromCharCode(65 + index); // A, B, C, D
   };
-  $rootScope.exportPDF = function () {
-    var element = document.getElementById('examPdf');
-    var opt = {
-      margin: 10,
-      filename: 'de-thi-' + $rootScope.exam.nameSelected + '.pdf',
-      image: { type: 'jpeg', quality: 0.98 },
-      html2canvas: { scale: 2, useCORS: true },
-      jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
-    };
+  // $rootScope.exportPDF = function () {
+  //   var element = document.getElementById('examPdf');
+  //   var opt = {
+  //     margin: 10,
+  //     filename: 'de-thi-' + $rootScope.exam.nameSelected + '.pdf',
+  //     image: { type: 'jpeg', quality: 0.98 },
+  //     html2canvas: { scale: 2, useCORS: true },
+  //     jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+  //   };
 
-    html2pdf().set(opt).from(element).save();
-  };
+  //   html2pdf().set(opt).from(element).save();
+  // };
 
 
 

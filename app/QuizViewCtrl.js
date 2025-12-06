@@ -1,8 +1,12 @@
 app.controller("QuizCtrl", function ($rootScope, $scope, ApiService, DataService, ToastService) {
+    const userLogin = JSON.parse(localStorage.getItem('user'));
     $scope.data_exam_quiz = [];
+    $scope.data_exam_quiz_temp = [];
     $scope.myFiles = [];
     $scope.myFilesTmp = [];
     $scope.previews = [];
+    $scope.selectedQuestionTable = [];
+    $scope.selectedQuestions = DataService.getHomeData("selectedQuestionsQuizs") || [];
     clear();
 
 
@@ -27,18 +31,40 @@ app.controller("QuizCtrl", function ($rootScope, $scope, ApiService, DataService
                 $scope.$apply(() => {
                     $scope.fill_data_exam.source_image.push({
                         "image_id": "",
-                        "source_image": e.target.result, // preview dạng base64
-                        "content": ""
+                        "source_image": e.target.result,
+                        "content": "",
+                        "answer_id": ""
                     });
                     $scope.myFilesTmp.push(file);
-
+                    updateImageContent('');
                 });
             };
             reader.readAsDataURL(file);
         });
-        console.log('$scope.myFiles.push(file);: ', $scope.myFilesTmp.length)
     });
 
+    function updateImageContent(ans) {
+        const totalImages = $scope.fill_data_exam.source_image.length;
+        const totalAnswer = $scope.fill_data_exam.Answers_Text.length || 0;
+        let data = $scope.fill_data_exam.Answers_Text;
+
+        $scope.fill_data_exam.source_image.forEach((img, index) => {
+            let answerVal = data[index]?.text_answer || "";
+            if (img.image_id == ans.image_answer_id ||(answerVal &&  $scope.fill_data_exam.source_image.length>1)) {
+                img.content = answerVal || ans.text_answer;
+
+            }
+            if (totalImages > 1 && index < totalAnswer) {
+                img.answer_id = index + 1;
+            } else {
+                img.answer_id = "";
+            }
+        });
+    }
+
+    $scope.onAnswerChange = function (val) {
+        updateImageContent(val)
+    }
 
 
 
@@ -62,14 +88,13 @@ app.controller("QuizCtrl", function ($rootScope, $scope, ApiService, DataService
             $scope.fill_data_exam.question_id = id;
             noti = "Đã cập nhật câu hỏi!";
         }
-
-        $scope.fill_data_exam.discipline_id = $scope.selectedDiscipline;
-        console.log($scope.myFilesTmp)
+        $scope.fill_data_exam.discipline_id = $scope.selectedDiscipline.discipline_id;
         ApiService.postInsertData($scope.fill_data_exam, $scope.myFilesTmp)
             .then(function (response) {
                 if (response.status == 200) {
                     ToastService.show(noti, "success");
                     $scope.data_exam_quiz = (response.data).data;
+                    $scope.data_exam_quiz_temp = angular.copy($scope.data_exam_quiz);
                     clear();
                 }
 
@@ -92,9 +117,10 @@ app.controller("QuizCtrl", function ($rootScope, $scope, ApiService, DataService
             allowOutsideClick: false,
         }).then((result) => {
             if (result.value) {
-                ApiService.deleteQuestions(id, $scope.selectedDiscipline)
+                ApiService.deleteQuestions(id, $scope.selectedDiscipline.discipline_id)
                     .then(function (response) {
                         $scope.data_exam_quiz = (response.data).data;
+                        $scope.data_exam_quiz_temp = angular.copy($scope.data_exam_quiz);
                         ToastService.show('Xóa thành công', "success");
                         clear();
                     })
@@ -104,15 +130,12 @@ app.controller("QuizCtrl", function ($rootScope, $scope, ApiService, DataService
             }
         });
     }
-    function update_data(data) {
-
-    }
 
     $scope.saveQuestion = function () {
 
     }
 
-    $scope.selectedQuestions = [];
+
 
     $scope.toggleQuestionSelection = function (id) {
         const idx = $scope.selectedQuestions.indexOf(id);
@@ -146,6 +169,7 @@ app.controller("QuizCtrl", function ($rootScope, $scope, ApiService, DataService
             "text_answer": "",
             "image_answer": "No Image Available"
         });
+        updateImageContent('');
     };
 
 
@@ -153,12 +177,21 @@ app.controller("QuizCtrl", function ($rootScope, $scope, ApiService, DataService
         if ($scope.fill_data_exam.Answers_Text.length <= 2) return;
         $scope.fill_data_exam.Answers_Text.splice(index, 1);
         $scope.fill_data_exam.Answers_Text.forEach((ans, i) => ans.answer_option_id = i + 1);
+        updateImageContent('');
     };
     $scope.confirmAnswer = function (id) {
         $scope.fill_data_exam.correct_answer[0].correct_answer = id
     }
     $scope.removeImage = function (source_image) {
-        $scope.fill_data_exam.source_image = $scope.fill_data_exam.source_image.filter(img => img.source_image != source_image);
+        let index = $scope.fill_data_exam.source_image.findIndex(
+            img => img.source_image === source_image
+        );
+
+        if (index !== -1) {
+            $scope.fill_data_exam.source_image.splice(index, 1);
+            $scope.myFilesTmp.splice(index, 1);
+        }
+        updateImageContent('');
         ToastService.show("Đã xóa hình ảnh!", "success");
     }
 
@@ -182,7 +215,7 @@ app.controller("QuizCtrl", function ($rootScope, $scope, ApiService, DataService
 
     $scope.logTypeQuestion = function (value) {
         $scope.fill_data_exam.correct_answer = [];
-        $scope.selectedQuestions = [];
+        $scope.selectedQuestionTable = [];
         $scope.fill_data_exam.correct_answer.push({
             "correct_answer_id": 1,
             "question_id": "",
@@ -195,21 +228,26 @@ app.controller("QuizCtrl", function ($rootScope, $scope, ApiService, DataService
 
 
     $scope.load_data_ctrl = function (id) {
-        $scope.fill_data_exam = $scope.data_exam_quiz[id];
-        $scope.fill_data_exam.user_id = 1;
+        // $scope.fill_data_exam = $scope.data_exam_quiz_temp[id];
+        $scope.fill_data_exam = angular.copy($scope.data_exam_quiz_temp[id]);
+        $scope.fill_data_exam.user_id = userLogin.user_id;
+        updateImageContent('');
     }
 
     function load_data_discipline(value) {
         $scope.selectedDiscipline = value;
-        ApiService.getQuestions(value)
+        $scope.selectedQuestionTable = [];
+        ApiService.getQuestions(value.discipline_id)
             .then(function (response) {
                 $scope.data_exam_quiz = (response.data).data;
+                $scope.data_exam_quiz_temp = angular.copy($scope.data_exam_quiz);
             })
             .catch(function (err) {
                 console.error("Lỗi khi load data Disciplines quiz view :", err);
             });
     }
     function watchRoot(varName, targetScopeVar, defaultSelect) {
+
         $scope.$watch(
             function () {
                 return $rootScope[varName];
@@ -218,11 +256,14 @@ app.controller("QuizCtrl", function ($rootScope, $scope, ApiService, DataService
                 if (newVal && newVal.length > 0) {
                     $scope[targetScopeVar] = newVal;
                     if (defaultSelect) {
+
                         if (newVal[0].level_id !== undefined) {
                             $scope[defaultSelect] = angular.copy($scope.fill_data_exam.level_id || DataService.getHomeData("level") || newVal[0].level_id);
                         } else if (newVal[0].discipline_id !== undefined) {
-                            $scope[defaultSelect] = angular.copy($scope.selectedDiscipline || DataService.getHomeData("Disciplines") || newVal[0].discipline_id);
+                            $scope[defaultSelect] = angular.copy(DataService.getHomeData("Disciplines") || newVal[0].discipline_id);
+                            $scope.selectedDiscipline = $scope.h_Disciplines[0];
                             load_data_discipline($scope[defaultSelect]);
+
                         }
                         else if (newVal[0].type_question_id !== undefined) {
                             $scope[defaultSelect] = angular.copy($scope.fill_data_exam.type_question_id || DataService.getHomeData("type_questions") || newVal[0].type_question_id);
@@ -301,9 +342,81 @@ app.controller("QuizCtrl", function ($rootScope, $scope, ApiService, DataService
                 "type_question_name": "Câu hỏi trắc nghiệm",
                 "name_level": "Dễ",
                 "fullname": "",
-                "userId":""
+                "user_id":${userLogin.user_id}
             }`);
     }
+    // data_exam_quiz_temp=
+    $scope.search = function () {
+        if ($scope.selectedQuestionTable.length > 0) {
+            $scope.selectedQuestionTable = [];
+        }
+        if (!$scope.change_search || $scope.change_search.trim() === "") {
+            $scope.data_exam_quiz_temp = angular.copy($scope.data_exam_quiz);
+        } else {
+            let keyword = $scope.change_search.toLowerCase();
+            $scope.data_exam_quiz_temp = $scope.data_exam_quiz.filter(q =>
+                q.text_question.toLowerCase().includes(keyword)
+            );
+        }
+    };
+    $scope.toggleQuestionSelectionTable = function (id) {
+        const idx = $scope.selectedQuestionTable.indexOf(id);
+        if (idx === -1) {
+            $scope.selectedQuestionTable.push(id);
+        } else {
+            $scope.selectedQuestionTable.splice(idx, 1);
+        }
+        DataService.setHomeData("selectedQuestionsQuizs", $scope.selectedQuestionTable);
+    }
+    $scope.toggleSelectAll = function () {
+        if (!$scope.data_exam_quiz_temp || !$scope.data_exam_quiz_temp.length) return;
+        const allSelected = $scope.selectedQuestionTable.length === $scope.data_exam_quiz_temp.length;
+        if (allSelected) {
+            $scope.selectedQuestionTable = [];
+        } else {
+            $scope.selectedQuestionTable = $scope.data_exam_quiz_temp.map(d => d.question_id);
+        }
+        DataService.setHomeData("selectedQuestionsQuizs", $scope.selectedQuestionTable);
+    }
+
+    $scope.deleteChooseQuestions = function () {
+        let content = '';
+        let type = '';
+        if ($scope.selectedQuestionTable && $scope.selectedQuestionTable.length === $scope.data_exam_quiz_temp.length) {
+            content = `Bạn có muốn xóa tất cả câu hỏi của môn ${$scope.selectedDiscipline.name_discipline}?`;
+            type = 'DELETE_ALL';
+        } else {
+            content = `Bạn có muốn xóa ${$scope.selectedQuestionTable.length} câu hỏi của môn ${$scope.selectedDiscipline.name_discipline}?`;
+            type = 'DELETE_CHOOSE_QUESTION';
+        }
+        Swal.fire({
+            title:
+                `<h3 style='color:red; font-size=10px'>${content}</h3>`,
+            html: '<img src="images/Confused.jpg" style="width:200px">',
+            showCancelButton: true,
+            confirmButtonColor: "#d33",
+            cancelButtonColor: "#3085d6",
+            confirmButtonText: "Có",
+            cancelButtonText: "Không",
+            allowOutsideClick: false,
+        }).then((result) => {
+            if (result.value) {
+                ApiService.deleteChooseQuestions($scope.selectedQuestionTable, $scope.selectedDiscipline.discipline_id, type)
+                    .then(function (response) {
+                        $scope.data_exam_quiz = (response.data).data;
+                        $scope.data_exam_quiz_temp = angular.copy($scope.data_exam_quiz);
+                        $scope.selectedQuestionTable = [];
+                        ToastService.show('Xóa thành công', "success");
+                        clear();
+                    })
+                    .catch(function (err) {
+                        console.error("Lỗi khi delete all data :", err);
+                    });
+            }
+        });
+    }
+
+
 
 
     //import excel
@@ -397,14 +510,13 @@ app.controller("QuizCtrl", function ($rootScope, $scope, ApiService, DataService
                 text: "Đã đọc đúng cấu trúc mẫu đề thi.",
             });
 
-            $scope.fill_data_exam.discipline_id = $scope.selectedDiscipline;
-            // console.log($scope.fill_data_exam)
+            $scope.fill_data_exam.discipline_id = $scope.selectedDiscipline.discipline_id;
             ApiService.postInsertDataExcel($scope.fill_data_exam, file)
                 .then(function (response) {
                     if (response.status == 200) {
                         ToastService.show('Upload thành công', "success");
-                        console.log(response.data)
                         $scope.data_exam_quiz = (response.data).data;
+                        $scope.data_exam_quiz_temp = angular.copy($scope.data_exam_quiz);
                         clear();
                     }
 

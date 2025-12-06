@@ -1,7 +1,7 @@
-const URL ="https://captivatingly-draftier-beulah.ngrok-free.dev";
+const URL = "http://localhost:8080";
+// const URL ="https://captivatingly-draftier-beulah.ngrok-free.dev";
 app.factory("ApiService", function ($http) {
   const API_URL = URL + "/api/v1/admin";
-  // const token = localStorage.getItem("token");
   function getToken() {
     return localStorage.getItem("token");
   }
@@ -78,6 +78,14 @@ app.factory("ApiService", function ($http) {
         },
       });
     },
+     deleteChooseQuestions: function (question_id, discipline_id,type) {
+      const token = getToken();
+      return $http.post(API_URL + "/questions/delete_data_choose_questions", { question_id: question_id, discipline_id: discipline_id ,type:type}, {
+        headers: {
+          Authorization: token
+        },
+      });
+    },
     postInsertDataExcel: function (data, files) {
       const token = getToken();
       let formData = new FormData();
@@ -135,7 +143,7 @@ app.factory("SocketService", function ($rootScope) {
   const socket = io(URL, {
     transports: ["websocket"],
     secure: true,
-    reconnection: false,
+    reconnection: true,
     reconnectionAttempts: Infinity,
     reconnectionDelay: 1000,
     reconnectionDelayMax: 5000,
@@ -143,10 +151,10 @@ app.factory("SocketService", function ($rootScope) {
 
   // log debug
   socket.on("connect", () => {
-    console.log("✅ Connected to", URL, "id:", socket.id);
+    // console.log("✅ Connected to", URL, "id:", socket.id);
   });
   socket.on("disconnect", (reason) => {
-    console.warn("❌ Disconnected:", reason);
+    // console.warn("❌ Disconnected:", reason);
   });
 
   return {
