@@ -10,6 +10,21 @@ app.factory("PDFService", function ($rootScope) {
       .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
       .join("");
   }
+  function waitImages(images) {
+    return Promise.all(
+      [...images].map(img => {
+        return new Promise(resolve => {
+
+          // ảnh đã load xong
+          if (img.complete && img.naturalWidth !== 0) return resolve();
+
+          // ảnh load sau
+          img.onload = () => resolve();
+          img.onerror = () => resolve(); // không block nếu ảnh lỗi
+        });
+      })
+    );
+  }
 
   return {
 
@@ -64,6 +79,7 @@ app.factory("PDFService", function ($rootScope) {
     // },
     exportPDF: async function (exam, user) {
       const { jsPDF } = window.jspdf;
+
       const wrapper = document.createElement('div');
       wrapper.innerHTML = exam;
       wrapper.style.width = "794px";
@@ -71,40 +87,31 @@ app.factory("PDFService", function ($rootScope) {
       wrapper.style.margin = "0 auto";
       document.body.appendChild(wrapper);
 
-
-      // ✅ FIX 1: gắn crossorigin + bust cache
+      // ✅ SET crossorigin + cache bust
       const images = wrapper.querySelectorAll("img");
       images.forEach(img => {
         img.crossOrigin = "anonymous";
-        if (!img.src.includes("?t=")) {
-          img.src = img.src + "?t=" + Date.now();
-        }
+        const url = new URL(img.src, location.href);
+        url.searchParams.set("t", Date.now());
+        img.src = url.toString();
       });
 
-      // ✅ FIX 2: ĐỢI ẢNH LOAD XONG
-      await Promise.all(
-        [...images].map(img => {
-          return new Promise(resolve => {
-            if (img.complete && img.naturalWidth !== 0) return resolve();
-            img.onload = img.onerror = resolve;
-          });
-        })
-      );
+      // ✅ ĐỢI TẤT CẢ ẢNH
+      await waitImages(images);
 
-
-      // ✅ ĐỢI DOM settle
+      // ✅ ĐỢI DOM STABLE
       await new Promise(r => setTimeout(r, 300));
 
-
-      // ✅ FIX 3: html2canvas cấu hình hoàn chỉnh
+      // ✅ html2canvas cấu hình mạnh nhất
       const canvas = await html2canvas(wrapper, {
         scale: 2,
         useCORS: true,
         allowTaint: false,
-        imageTimeout: 20000,
-        backgroundColor: "#fff"
+        imageTimeout: 30000,
+        backgroundColor: "#ffffff",
+        logging: false,
+        removeContainer: true
       });
-
 
       const imgData = canvas.toDataURL("image/jpeg", 0.98);
 
