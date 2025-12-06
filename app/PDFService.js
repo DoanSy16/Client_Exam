@@ -75,7 +75,7 @@ app.factory("PDFService", function ($rootScope) {
       // ✅ FIX 1: gắn crossorigin + bust cache
       const images = wrapper.querySelectorAll("img");
       images.forEach(img => {
-        img.crossOrigin = "anonymous";
+        img.setAttribute("crossorigin", "anonymous");
         if (!img.src.includes("?t=")) {
           img.src = img.src + "?t=" + Date.now();
         }
