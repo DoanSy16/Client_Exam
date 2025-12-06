@@ -28,7 +28,8 @@ app.factory("PDFService", function ($rootScope) {
       const canvas = await html2canvas(wrapper, {
         scale: 2,
         useCORS: true,
-        allowTaint: false
+        allowTaint: false,
+        imageTimeout: 20000
       });
 
       const imgData = canvas.toDataURL("image/jpeg", 0.98);
