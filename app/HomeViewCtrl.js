@@ -339,7 +339,6 @@ app.controller("HomeViewCtrl", function ($scope, $rootScope, ApiService, DataSer
         return exam.map(q => shuffleAnswers(q));
     }
 
-    let source_image_base64 = {};
 
     async function create_new_exam_questions() {
         $scope.data_exam_questions = [];
@@ -358,60 +357,9 @@ app.controller("HomeViewCtrl", function ($scope, $rootScope, ApiService, DataSer
         }
         // Lưu và hiển thị thông báo
         ExamService.setAll($scope.data_exam_questions);
-        DataService.setHomeData('data_images_base64', source_image_base64);
         saveExamQuestion("exam_questions", 1, $scope.data_exam_questions);
-        saveExamQuestion("data_image_base64", 4, source_image_base64);
         ToastService.show(`Đã tạo ${$scope.data_exam_questions.length} đề thi`, "success");
     }
-
-
-    // function create_new_exam_questions() {
-    //     $scope.data_exam_questions = [];
-    //     for (let i = 0; i < $scope.machines; i++) {
-    //         const exam = getExam($scope.countExamQuestions, $scope.selectedLevel, $scope.confirmSelectedQuestions);
-    //         $scope.data_exam_questions.push({
-    //             examId: `DE-${i + 1}`,
-    //             isSelected: "",
-    //             nameSelected: "",
-    //             statusExam: true,
-    //             selectedDocument: $scope.selectedDocument,
-    //             questions: exam
-    //         });
-    //         for (const question of $scope.confirmSelectedQuestions) {
-    //             for (const url of question.source_image) {
-    //                 if (!source_image_base64[url.source_image]) { // chưa preload
-    //                     fetch(url.source_image)
-    //                         .then(resp => resp.blob())
-    //                         .then(blob => {
-    //                             const reader = new FileReader();
-    //                             reader.onloadend = () => {
-    //                                 source_image_base64[url.source_image] = reader.result; // lưu Base64
-    //                                 console.log('Preloaded:', url.source_image);
-    //                             };
-    //                             reader.readAsDataURL(blob);
-    //                         })
-    //                         .catch(err => console.error('Load failed:', url.source_image, err));
-    //                 }
-    //             }
-
-    //             console.log(question.source_image);
-    //             // Xử lý question
-    //         }
-
-    //         // console.log(' $scope.confirmSelectedQuestions: ', $scope.confirmSelectedQuestions)
-    //     }
-    //     ExamService.setAll($scope.data_exam_questions);
-    //     saveExamQuestion("exam_questions", 1, $scope.data_exam_questions);
-    //     // DataService.setHomeData("data_exam_questions", $scope.data_exam_questions);
-    //     // localStorage.setItem("data_exam_questions", JSON.stringify($scope.data_exam_questions));
-    //     // IndexedDBService.save("exam_questions", {
-    //     //     id: 1,
-    //     //     data: $scope.data_exam_questions
-    //     // });
-
-    //     ToastService.show(`Đã tạo ${$scope.data_exam_questions.length} đề thi`, "success");
-
-    // }
 
     $scope.exam = {
         createCodeRoom: function () {
