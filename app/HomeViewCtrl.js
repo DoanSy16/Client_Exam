@@ -338,10 +338,15 @@ app.controller("HomeViewCtrl", function ($scope, $rootScope, ApiService, DataSer
         lastExam = exam; // lưu lại đề vừa tạo
         return exam.map(q => shuffleAnswers(q));
     }
-    function create_new_exam_questions() {
+
+    let source_image_base64 = {};
+
+    async function create_new_exam_questions() {
         $scope.data_exam_questions = [];
+
         for (let i = 0; i < $scope.machines; i++) {
             const exam = getExam($scope.countExamQuestions, $scope.selectedLevel, $scope.confirmSelectedQuestions);
+
             $scope.data_exam_questions.push({
                 examId: `DE-${i + 1}`,
                 isSelected: "",
@@ -350,19 +355,84 @@ app.controller("HomeViewCtrl", function ($scope, $rootScope, ApiService, DataSer
                 selectedDocument: $scope.selectedDocument,
                 questions: exam
             });
+
+            // Preload ảnh cho từng câu hỏi
+            for (const question of $scope.confirmSelectedQuestions) {
+                for (const img of question.source_image) {
+                    const url = img.source_image;
+                    if (!source_image_base64[img.image_id]) {
+                        try {
+                            const resp = await fetch(url);
+                            const blob = await resp.blob();
+                            const reader = new FileReader();
+                            reader.onloadend = () => {
+                                $scope.$apply(() => {
+                                    source_image_base64[img.image_id] = reader.result;
+                                });
+                            };
+                            reader.readAsDataURL(blob);
+                        } catch (err) {
+                            console.error('Load failed:', url, err);
+                        }
+                    }
+                }
+            }
         }
+        // Lưu và hiển thị thông báo
         ExamService.setAll($scope.data_exam_questions);
+        DataService.setHomeData('data_images_base64', source_image_base64);
         saveExamQuestion("exam_questions", 1, $scope.data_exam_questions);
-        // DataService.setHomeData("data_exam_questions", $scope.data_exam_questions);
-        // localStorage.setItem("data_exam_questions", JSON.stringify($scope.data_exam_questions));
-        // IndexedDBService.save("exam_questions", {
-        //     id: 1,
-        //     data: $scope.data_exam_questions
-        // });
-
+        saveExamQuestion("data_image_base64", 4, source_image_base64);
         ToastService.show(`Đã tạo ${$scope.data_exam_questions.length} đề thi`, "success");
-
     }
+
+    // function create_new_exam_questions() {
+    //     $scope.data_exam_questions = [];
+    //     for (let i = 0; i < $scope.machines; i++) {
+    //         const exam = getExam($scope.countExamQuestions, $scope.selectedLevel, $scope.confirmSelectedQuestions);
+    //         $scope.data_exam_questions.push({
+    //             examId: `DE-${i + 1}`,
+    //             isSelected: "",
+    //             nameSelected: "",
+    //             statusExam: true,
+    //             selectedDocument: $scope.selectedDocument,
+    //             questions: exam
+    //         });
+    //         for (const question of $scope.confirmSelectedQuestions) {
+    //             for (const url of question.source_image) {
+    //                 if (!source_image_base64[url.source_image]) { // chưa preload
+    //                     fetch(url.source_image)
+    //                         .then(resp => resp.blob())
+    //                         .then(blob => {
+    //                             const reader = new FileReader();
+    //                             reader.onloadend = () => {
+    //                                 source_image_base64[url.source_image] = reader.result; // lưu Base64
+    //                                 console.log('Preloaded:', url.source_image);
+    //                             };
+    //                             reader.readAsDataURL(blob);
+    //                         })
+    //                         .catch(err => console.error('Load failed:', url.source_image, err));
+    //                 }
+    //             }
+
+    //             console.log(question.source_image);
+    //             // Xử lý question
+    //         }
+
+    //         // console.log(' $scope.confirmSelectedQuestions: ', $scope.confirmSelectedQuestions)
+    //     }
+    //     ExamService.setAll($scope.data_exam_questions);
+    //     saveExamQuestion("exam_questions", 1, $scope.data_exam_questions);
+    //     // DataService.setHomeData("data_exam_questions", $scope.data_exam_questions);
+    //     // localStorage.setItem("data_exam_questions", JSON.stringify($scope.data_exam_questions));
+    //     // IndexedDBService.save("exam_questions", {
+    //     //     id: 1,
+    //     //     data: $scope.data_exam_questions
+    //     // });
+
+    //     ToastService.show(`Đã tạo ${$scope.data_exam_questions.length} đề thi`, "success");
+
+    // }
 
     $scope.exam = {
         createCodeRoom: function () {
@@ -424,7 +494,7 @@ app.controller("HomeViewCtrl", function ($scope, $rootScope, ApiService, DataSer
             DataService.setHomeData("confirmSelectedQuestions", $scope.confirmSelectedQuestions);
             updateDataLocalStorage()
         },
-        createExamQuestions: function () {
+        createExamQuestions: async function () {
             if ($scope.time == 0) {
                 ToastService.show("Vui lòng chọn thời gian!", "error");
             }
@@ -436,7 +506,7 @@ app.controller("HomeViewCtrl", function ($scope, $rootScope, ApiService, DataSer
                 ToastService.show("Vui lòng chọn số câu hỏi!", "error");
             } else {
                 if ($scope.data_exam_questions == null || $scope.data_exam_questions.length == 0) {
-                    create_new_exam_questions();
+                    await create_new_exam_questions();
 
                 } else {
                     Swal.fire({
@@ -449,10 +519,10 @@ app.controller("HomeViewCtrl", function ($scope, $rootScope, ApiService, DataSer
                         confirmButtonText: "Có",
                         cancelButtonText: "Không",
                         allowOutsideClick: false,
-                    }).then((result) => {
+                    }).then(async (result) => {
                         if (result.value) {
                             removeLocalstorage();
-                            create_new_exam_questions();
+                            await create_new_exam_questions();
                         }
                     });
                 }

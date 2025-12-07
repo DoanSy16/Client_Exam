@@ -7,7 +7,8 @@ app.service("IndexedDBService", function ($q) {
     const STORES = [
         { name: "exam_questions", key: "id" },
         { name: "data_exam_mark", key: "id" },
-        { name: "data_exam_mark_excel", key: "id" }
+        { name: "data_exam_mark_excel", key: "id" },
+         { name: "data_image_base64", key: "id" }
     ];
 
     let db = null;
