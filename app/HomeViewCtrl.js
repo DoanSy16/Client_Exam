@@ -362,20 +362,32 @@ app.controller("HomeViewCtrl", function ($scope, $rootScope, ApiService, DataSer
                     const url = img.source_image;
                     if (!source_image_base64[img.image_id]) {
                         try {
-                            const resp = await fetch(url);
-                            const blob = await resp.blob();
-                            const reader = new FileReader();
-                            reader.onloadend = () => {
+                            const base64 = await fetchImageBase64(img.source_image);
+                            if (base64) {
                                 $scope.$apply(() => {
-                                    console.log( reader.result)
-                                    source_image_base64[img.image_id] = reader.result;
+                                    source_image_base64[img.image_id] = base64;
                                 });
-                            };
-                            reader.readAsDataURL(blob);
+                            }
                         } catch (err) {
-                            console.error('Load failed:', url, err);
+                            console.error('Load failed:', img.source_image, err);
                         }
                     }
+                    // if (!source_image_base64[img.image_id]) {
+                    //     try {
+                    //         const resp = await fetch(url);
+                    //         const blob = await resp.blob();
+                    //         const reader = new FileReader();
+                    //         reader.onloadend = () => {
+                    //             $scope.$apply(() => {
+                    //                 console.log(reader.result)
+                    //                 source_image_base64[img.image_id] = reader.result;
+                    //             });
+                    //         };
+                    //         reader.readAsDataURL(blob);
+                    //     } catch (err) {
+                    //         console.error('Load failed:', url, err);
+                    //     }
+                    // }
                 }
             }
         }
@@ -385,6 +397,22 @@ app.controller("HomeViewCtrl", function ($scope, $rootScope, ApiService, DataSer
         saveExamQuestion("exam_questions", 1, $scope.data_exam_questions);
         saveExamQuestion("data_image_base64", 4, source_image_base64);
         ToastService.show(`Đã tạo ${$scope.data_exam_questions.length} đề thi`, "success");
+    }
+    async function fetchImageBase64(url) {
+        const resp = await fetch(url);
+        if (!resp.ok) throw new Error(`HTTP error ${resp.status}`);
+
+        const contentType = resp.headers.get('content-type');
+        if (!contentType.startsWith('image/')) throw new Error(`Not an image: ${contentType}`);
+
+        const blob = await resp.blob();
+
+        return await new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onloadend = () => resolve(reader.result);
+            reader.onerror = reject;
+            reader.readAsDataURL(blob);
+        });
     }
 
     // function create_new_exam_questions() {
