@@ -6,6 +6,7 @@ app.controller("QuizCtrl", function ($rootScope, $scope, ApiService, DataService
     $scope.myFilesTmp = [];
     $scope.previews = [];
     $scope.selectedQuestionTable = [];
+    $scope.isLoadingButton = false;
     $scope.selectedQuestions = DataService.getHomeData("selectedQuestionsQuizs") || [];
     clear();
 
@@ -50,7 +51,7 @@ app.controller("QuizCtrl", function ($rootScope, $scope, ApiService, DataService
 
         $scope.fill_data_exam.source_image.forEach((img, index) => {
             let answerVal = data[index]?.text_answer || "";
-            if (img.image_id == ans.image_answer_id ||(answerVal &&  $scope.fill_data_exam.source_image.length>1)) {
+            if (img.image_id == ans.image_answer_id || (answerVal && $scope.fill_data_exam.source_image.length > 1)) {
                 img.content = answerVal || ans.text_answer;
 
             }
@@ -88,6 +89,7 @@ app.controller("QuizCtrl", function ($rootScope, $scope, ApiService, DataService
             $scope.fill_data_exam.question_id = id;
             noti = "Đã cập nhật câu hỏi!";
         }
+        $scope.isLoadingButton = true;
         $scope.fill_data_exam.discipline_id = $scope.selectedDiscipline.discipline_id;
         ApiService.postInsertData($scope.fill_data_exam, $scope.myFilesTmp)
             .then(function (response) {
@@ -96,6 +98,7 @@ app.controller("QuizCtrl", function ($rootScope, $scope, ApiService, DataService
                     $scope.data_exam_quiz = (response.data).data;
                     $scope.data_exam_quiz_temp = angular.copy($scope.data_exam_quiz);
                     clear();
+                    $scope.isLoadingButton = false;
                 }
 
             })
