@@ -355,41 +355,6 @@ app.controller("HomeViewCtrl", function ($scope, $rootScope, ApiService, DataSer
                 selectedDocument: $scope.selectedDocument,
                 questions: exam
             });
-
-            // Preload ảnh cho từng câu hỏi
-            for (const question of $scope.confirmSelectedQuestions) {
-                for (const img of question.source_image) {
-                    const url = img.source_image;
-                    if (!source_image_base64[img.image_id]) {
-                        try {
-                            const base64 = await fetchImageBase64(`/proxy-image?url=${encodeURIComponent(img.source_image)}`);
-                            if (base64) {
-                                $scope.$apply(() => {
-                                    source_image_base64[img.image_id] = base64;
-                                });
-                            }
-                        } catch (err) {
-                            console.error('Load failed:', img.source_image, err);
-                        }
-                    }
-                    // if (!source_image_base64[img.image_id]) {
-                    //     try {
-                    //         const resp = await fetch(url);
-                    //         const blob = await resp.blob();
-                    //         const reader = new FileReader();
-                    //         reader.onloadend = () => {
-                    //             $scope.$apply(() => {
-                    //                 console.log(reader.result)
-                    //                 source_image_base64[img.image_id] = reader.result;
-                    //             });
-                    //         };
-                    //         reader.readAsDataURL(blob);
-                    //     } catch (err) {
-                    //         console.error('Load failed:', url, err);
-                    //     }
-                    // }
-                }
-            }
         }
         // Lưu và hiển thị thông báo
         ExamService.setAll($scope.data_exam_questions);
@@ -398,22 +363,7 @@ app.controller("HomeViewCtrl", function ($scope, $rootScope, ApiService, DataSer
         saveExamQuestion("data_image_base64", 4, source_image_base64);
         ToastService.show(`Đã tạo ${$scope.data_exam_questions.length} đề thi`, "success");
     }
-    async function fetchImageBase64(url) {
-        const resp = await fetch(url);
-        if (!resp.ok) throw new Error(`HTTP error ${resp.status}`);
 
-        const contentType = resp.headers.get('content-type');
-        if (!contentType.startsWith('image/')) throw new Error(`Not an image: ${contentType}`);
-
-        const blob = await resp.blob();
-
-        return await new Promise((resolve, reject) => {
-            const reader = new FileReader();
-            reader.onloadend = () => resolve(reader.result);
-            reader.onerror = reject;
-            reader.readAsDataURL(blob);
-        });
-    }
 
     // function create_new_exam_questions() {
     //     $scope.data_exam_questions = [];
