@@ -6,9 +6,10 @@
                 <h2>Tạo/Chỉnh sửa câu hỏi</h2>
             </div>
             <div class="quiz-controls">
-                <button class="btn btn-primary" ng-click="addQuestion(true)">Thêm câu hỏi</button>
+                <button class="btn btn-primary" ng-disabled="isLoadingButton" ng-click="addQuestion(true)">Thêm câu
+                    hỏi</button>
                 <button ng-class="{'btn-save': fill_data_exam.question_id != null ,'btn-outline':''}"
-                    ng-disabled="!fill_data_exam.question_id" class="btn btn-secondary"
+                    ng-disabled="!fill_data_exam.question_id ||isLoadingButton" class="btn btn-secondary"
                     ng-click="addQuestion(false)">Lưu</button>
                 <button class="btn " ng-click="clearForm()">Làm mới</button>
             </div>
@@ -185,13 +186,15 @@
                             <th class="col-stt">STT</th>
                             <th class="col-stt">Chọn</th>
                             <th class="col-question">Câu hỏi</th>
+
                             <th class="col-level">Độ khó</th>
                             <th class="col-user">Người tạo</th>
                             <th class="col-action">Thao tác</th>
                         </tr>
                     </thead>
                     <tbody id="questions-bank-table">
-                        <tr ng-repeat="d in data_exam_quiz_temp track by d.question_id">
+                        <tr ng-repeat="d in data_exam_quiz_temp track by d.question_id"
+                            ng-class="{'highlight-row': d.question_id == fill_data_exam.question_id || selectedQuestionTable.indexOf(d.question_id) !== -1}">
                             <td>{{$index + 1}}
                             </td>
                             <td>
