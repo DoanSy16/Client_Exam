@@ -367,6 +367,7 @@ app.controller("HomeViewCtrl", function ($scope, $rootScope, ApiService, DataSer
                             const reader = new FileReader();
                             reader.onloadend = () => {
                                 $scope.$apply(() => {
+                                    console.log( reader.result)
                                     source_image_base64[img.image_id] = reader.result;
                                 });
                             };
