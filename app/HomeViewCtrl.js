@@ -362,7 +362,7 @@ app.controller("HomeViewCtrl", function ($scope, $rootScope, ApiService, DataSer
                     const url = img.source_image;
                     if (!source_image_base64[img.image_id]) {
                         try {
-                            const base64 = await fetchImageBase64(img.source_image);
+                            const base64 = await fetchImageBase64(`/proxy-image?url=${encodeURIComponent(img.source_image)}`);
                             if (base64) {
                                 $scope.$apply(() => {
                                     source_image_base64[img.image_id] = base64;
