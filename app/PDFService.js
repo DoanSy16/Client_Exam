@@ -112,7 +112,7 @@ app.factory("PDFService", function ($rootScope, DataService, IndexedDBService, $
           img.src = base64; // thay src thành Base64
         }
       });
-
+  console.log(wrapper.innerHTML);
       // Chờ wrapper render xong (nếu cần)
       await new Promise(resolve => setTimeout(resolve, 100));
 
