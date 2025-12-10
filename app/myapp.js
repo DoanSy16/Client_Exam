@@ -20,7 +20,8 @@ app.run(function ($rootScope, ApiService, DataService, ExamService, SocketServic
   $rootScope.modelUser = false;
   $rootScope.notification_dropdown = false;
   $rootScope.notification_data = JSON.parse(localStorage.getItem('notification_data')) || {};
-  $rootScope.notification_data_tmp = $rootScope.notification_data || {};
+  $rootScope.notification_data_tmp = Object.values($rootScope.notification_data)
+    .sort((a, b) => b.time - a.time) || {};
   $rootScope.notification_count_data = parseInt(localStorage.getItem('notification_count_data')) || 0;
   $rootScope.user = [];
   $rootScope.autoexportPDF = true;
@@ -118,11 +119,13 @@ app.run(function ($rootScope, ApiService, DataService, ExamService, SocketServic
   $rootScope.selectedStatus = 'ALL';
   $rootScope.filterStatus = function (value) {
     if (value === 'ALL') {
-      $rootScope.notification_data_tmp = $rootScope.notification_data;
+      // $rootScope.notification_data_tmp = $rootScope.notification_data;
+      $rootScope.notification_data_tmp = Object.values($rootScope.notification_data)
+      .sort((a, b) => b.time - a.time);
       return;
     }
     $rootScope.notification_data_tmp =
-      Object.values($rootScope.notification_data).filter(n => {
+      Object.values($rootScope.notification_data).sort((a, b) => b.time - a.time).filter(n => {
         return n.type === value;
       });
     count_notification(value);
@@ -293,8 +296,12 @@ app.run(function ($rootScope, ApiService, DataService, ExamService, SocketServic
       time: Date.now(),
       status: status
     }
+    console.log($rootScope.notification_data[id_noti])
+    $rootScope.notification_data_tmp = Object.values($rootScope.notification_data)
+      .sort((a, b) => b.time - a.time);
+    // $rootScope.notification_count_data = $rootScope.notification_data_tmp.filter(n => n.status === false).length;
+    count_notification();
 
-    $rootScope.notification_data_tmp = $rootScope.notification_data;
     DataService.setHomeData('notification_data', $rootScope.notification_data);
     localStorage.setItem('notification_data', JSON.stringify($rootScope.notification_data));
 
