@@ -1,5 +1,5 @@
-const URL = "http://localhost:8080";
-// const URL ="https://captivatingly-draftier-beulah.ngrok-free.dev";
+//const URL = "http://localhost:8080";
+const URL ="https://captivatingly-draftier-beulah.ngrok-free.dev";
 app.factory("ApiService", function ($http) {
   const API_URL = URL + "/api/v1/admin";
   function getToken() {
