@@ -187,7 +187,7 @@ app.run(function ($rootScope, ApiService, DataService, ExamService, SocketServic
 
 
     // Tìm đề chưa bị khóa
-    const index = $rootScope.data_exam_questions.findIndex(q => !q.isSelected);
+    const index = $rootScope.data_exam_questions.findIndex(q => (!q.isSelected || userId == q.isSelected));
 
     if (index === -1) {
       ToastService.show("Hết đề thi!", "error");

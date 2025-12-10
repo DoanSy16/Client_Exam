@@ -1,5 +1,5 @@
-// const URL = "http://localhost:8080";
-const URL ="https://captivatingly-draftier-beulah.ngrok-free.dev";
+const URL = "http://localhost:8080";
+// const URL ="https://captivatingly-draftier-beulah.ngrok-free.dev";
 app.factory("ApiService", function ($http) {
   const API_URL = URL + "/api/v1/admin";
   function getToken() {
@@ -78,9 +78,9 @@ app.factory("ApiService", function ($http) {
         },
       });
     },
-     deleteChooseQuestions: function (question_id, discipline_id,type) {
+    deleteChooseQuestions: function (question_id, discipline_id, type) {
       const token = getToken();
-      return $http.post(API_URL + "/questions/delete_data_choose_questions", { question_id: question_id, discipline_id: discipline_id ,type:type}, {
+      return $http.post(API_URL + "/questions/delete_data_choose_questions", { question_id: question_id, discipline_id: discipline_id, type: type }, {
         headers: {
           Authorization: token
         },
@@ -103,6 +103,18 @@ app.factory("ApiService", function ($http) {
       return $http.post(API_URL + "/auth/login", { username, password }, {
         withCredentials: true
       });
+    },
+    exportExcel: function (id) {
+      const token = getToken();
+      return $http.post(API_URL + "/questions/export_data_questions_from_excel_ctrl",
+        { id },
+        {
+          responseType: "blob",
+          headers: {
+            Authorization: token
+          }
+        }
+      );
     }
 
   };

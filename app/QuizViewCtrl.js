@@ -531,6 +531,39 @@ app.controller("QuizCtrl", function ($rootScope, $scope, ApiService, DataService
         };
         reader.readAsArrayBuffer(file);
     };
+    $scope.exportExcel = function () {
+        Swal.fire({
+            title: `<h2 style='color:red;'>Tải dữ liệu môn ${$scope.selectedDiscipline.name_discipline}?</h2>`,
+            html: '<img src="images/Confused.jpg" style="width:200px">',
+            showCancelButton: true,
+            confirmButtonColor: "#d33",
+            cancelButtonColor: "#3085d6",
+            confirmButtonText: "Có",
+            cancelButtonText: "Không",
+            allowOutsideClick: false,
+        }).then((result) => {
+            if (result.value) {
+                ApiService.exportExcel($scope.selectedDiscipline.discipline_id)
+                    .then(function (res) {
+                        const blob = new Blob([res.data], {
+                            type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+                        });
+                        const url = window.URL.createObjectURL(blob);
+                        const a = document.createElement("a");
+                        a.href = url;
+                        a.download = `${$scope.selectedDiscipline.name_discipline}.xlsx`;
+                        document.body.appendChild(a);
+                        a.click();
+                        document.body.removeChild(a);
+                    })
+                    .catch(err => {
+                        console.error("Export error", err);
+                        ToastService.show('Xuất file thất bại', "error");
+                    });
+            }
 
+        });
+
+    }
 
 });
