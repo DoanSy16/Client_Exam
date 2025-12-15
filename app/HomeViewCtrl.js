@@ -280,7 +280,7 @@ app.controller("HomeViewCtrl", function ($scope, $rootScope, ApiService, DataSer
 
     function getExam(total, type, questions) {
         const examConfig = {
-            1: { easy: 0.5, medium: 0.3, hard: 0.2 }, // đề dễ
+            1: { easy: 0.6, medium: 0.3, hard: 0.1 }, // đề dễ
             2: { easy: 0.3, medium: 0.4, hard: 0.3 }, // đề trung bình
             3: { easy: 0.2, medium: 0.3, hard: 0.5 }  // đề khó
         };
