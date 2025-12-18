@@ -82,6 +82,40 @@ app.run(function ($rootScope, ApiService, DataService, ExamService, SocketServic
 
   });
 
+  // $window.addEventListener("online", () => {
+  //   console.log("🌐 Network online");
+  //   if (data && data.code_room)
+  //     SocketService.emit("reconnect_user", { userId: $rootScope.user.user_id, roomId: data.code_room });
+
+  // });
+
+  // $window.addEventListener("offline", () => {
+  //   console.warn("🌐 Network offline");
+  // });
+
+
+  let offlineTimer = null;
+
+  $window.addEventListener("offline", () => {
+   ToastService.show("🌐 Mất kết nối Internet", "error");
+    if (!offlineTimer) {
+      offlineTimer = setInterval(() => {
+         ToastService.show("🌐 Mất kết nối Internet...", "error");
+      }, 5000);
+    }
+  });
+
+  $window.addEventListener("online", () => {
+   ToastService.show("🌐 Đã kết nối lại", "success");
+    if (offlineTimer) {
+      if (data && data.code_room)
+        SocketService.emit("reconnect_user", { userId: $rootScope.user.user_id, roomId: data.code_room });
+      clearInterval(offlineTimer);
+      offlineTimer = null;
+    }
+  });
+
+
   $rootScope.openProfile = function () {
     $rootScope.modelUser = !$rootScope.modelUser;
   }
@@ -121,7 +155,7 @@ app.run(function ($rootScope, ApiService, DataService, ExamService, SocketServic
     if (value === 'ALL') {
       // $rootScope.notification_data_tmp = $rootScope.notification_data;
       $rootScope.notification_data_tmp = Object.values($rootScope.notification_data)
-      .sort((a, b) => b.time - a.time);
+        .sort((a, b) => b.time - a.time);
       return;
     }
     $rootScope.notification_data_tmp =
@@ -296,7 +330,7 @@ app.run(function ($rootScope, ApiService, DataService, ExamService, SocketServic
       time: Date.now(),
       status: status
     }
-    console.log($rootScope.notification_data[id_noti])
+    // console.log($rootScope.notification_data[id_noti])
     $rootScope.notification_data_tmp = Object.values($rootScope.notification_data)
       .sort((a, b) => b.time - a.time);
     // $rootScope.notification_count_data = $rootScope.notification_data_tmp.filter(n => n.status === false).length;
